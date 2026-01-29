@@ -60,6 +60,26 @@ npm install && npm run dev
 php artisan migrate
 ```
 
+Instale o Plugin Vue do Vite
+```sh
+npm install --save-dev @vitejs/plugin-vue
+```
+
+Instale o Inertia + Vue3
+```sh
+npm install @inertiajs/inertia @inertiajs/inertia-vue3 vue@3
+```
+
+Instale o Bootstrap 5 via npm
+```sh
+npm install bootstrap@5
+```
+
+Rode o npm
+```sh
+npm run dev
+```
+
 Acesse o projeto
 [http://localhost:8000](http://localhost:8000)
 
