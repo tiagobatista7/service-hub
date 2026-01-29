@@ -1,7 +1,6 @@
 <template>
   <div class="container py-5">
     <div class="mx-auto position-relative" style="max-width: 600px">
-      <!-- Botão Voltar moderno e clean -->
       <button
         @click="$inertia.get(route('projects.index'))"
         type="button"
@@ -45,7 +44,6 @@
         :class="{ 'was-validated': validated }"
         novalidate
       >
-        <!-- formulário igual ao anterior -->
         <div class="mb-3">
           <label for="title" class="form-label">Título *</label>
           <input
