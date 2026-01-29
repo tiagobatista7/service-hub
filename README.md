@@ -47,5 +47,20 @@ Rodar as migrations
 php artisan migrate
 ```
 
+Popular tabelas com seeders
+```sh
+php artisan db:seed
+```
+
+Instale o Laravel Breeze & npm
+```sh
+composer require laravel/breeze --dev
+php artisan breeze:install
+npm install && npm run dev
+php artisan migrate
+```
+
 Acesse o projeto
 [http://localhost:8000](http://localhost:8000)
+
+
