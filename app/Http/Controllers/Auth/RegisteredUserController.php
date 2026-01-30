@@ -20,26 +20,33 @@ class RegisteredUserController extends Controller
      */
     public function create(): Response
     {
-        return Inertia::render('Auth/Register');
+        $companies = \App\Models\Company::all(['id', 'name']); // buscar empresas para enviar ao frontend
+        return Inertia::render('Auth/Register', [
+            'companies' => $companies,
+        ]);
     }
 
-    /**
-     * Handle an incoming registration request.
-     *
-     * @throws \Illuminate\Validation\ValidationException
-     */
     public function store(Request $request): RedirectResponse
     {
         $request->validate([
             'name' => 'required|string|max:255',
-            'email' => 'required|string|lowercase|email|max:255|unique:'.User::class,
+            'email' => 'required|string|lowercase|email|max:255|unique:' . User::class,
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
+            'phone' => ['nullable', 'string', 'max:20'],
+            'role' => ['nullable', 'string', 'max:255'],
+            'company_id' => ['required', 'exists:companies,id'],
         ]);
 
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
+            'company_id' => $request->company_id,
+        ]);
+
+        $user->profile()->create([
+            'phone' => $request->phone,
+            'role' => $request->role,
         ]);
 
         event(new Registered($user));

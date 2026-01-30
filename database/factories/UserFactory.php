@@ -25,9 +25,15 @@ class UserFactory extends Factory
     {
         $password = Hash::make('password');
 
+        $firstName = $this->faker->firstName();
+        $lastName  = $this->faker->lastName();
+        $domains = ['meusistema.com.br', 'appgestao.com.br', 'sistemaerp.com.br'];
+
         return [
-            'name' => $this->faker->name(),
-            'email' => $this->faker->unique()->safeEmail(),
+            'name' => "$firstName $lastName",
+            'email' => strtolower(
+                Str::slug($firstName) . '.' . Str::slug($lastName) . '@' . $this->faker->randomElement($domains)
+            ),
             'email_verified_at' => now(),
             'password' => $password,
             'remember_token' => Str::random(10),
@@ -41,6 +47,21 @@ class UserFactory extends Factory
     {
         return $this->state(fn(array $attributes) => [
             'email_verified_at' => null,
+        ]);
+    }
+
+    /**
+     * Cria um usuário administrador fixo.
+     */
+    public function admin(): static
+    {
+        return $this->state(fn(array $attributes) => [
+            'name' => 'Administrador',
+            'email' => 'admin@admin.com',
+            'email_verified_at' => now(),
+            'password' => Hash::make('123456789'),
+            'remember_token' => Str::random(10),
+            'company_id' => 1,
         ]);
     }
 }

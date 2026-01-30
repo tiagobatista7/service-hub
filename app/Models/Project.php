@@ -10,8 +10,9 @@ class Project extends Model
     use HasFactory;
 
     protected $fillable = [
-        'company_id',
         'name',
+        'company_id',
+        'user_id',
     ];
 
     public function company()
@@ -21,6 +22,16 @@ class Project extends Model
 
     public function tickets()
     {
-        return $this->hasMany(Ticket::class);
+        return $this->hasMany(Ticket::class)->orderBy('id', 'desc')->limit(3);
+    }
+
+    public function tickets_all()
+    {
+        return $this->hasMany(Ticket::class)->orderBy('id', 'desc');
+    }
+
+    public function tickets_limited()
+    {
+        return $this->hasMany(Ticket::class)->orderBy('id', 'desc')->limit(3);
     }
 }

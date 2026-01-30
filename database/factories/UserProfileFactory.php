@@ -13,10 +13,10 @@ class UserProfileFactory extends Factory
 
     public function definition()
     {
-        $roles = ['Member', 'Admin', 'Moderator'];
+        $roles = ['Membro', 'Administrador', 'Moderador'];
 
-        return [           
-            'phone' => $this->faker->phoneNumber(),
+        return [
+            'phone' => $this->faker->numerify('(##) 9####-####'),
             'role' => $this->faker->randomElement($roles),
         ];
     }

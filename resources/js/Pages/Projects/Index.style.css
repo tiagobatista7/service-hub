@@ -1,0 +1,56 @@
+@media (max-width: 767.98px) {
+    .responsive-table thead {
+        display: none;
+    }
+
+    .responsive-table tbody tr {
+        display: block;
+        margin-bottom: 1rem;
+        border: 1px solid #dee2e6;
+        border-radius: 0.375rem;
+        padding: 0.75rem 1rem;
+        cursor: default !important;
+    }
+
+    .responsive-table tbody tr td {
+        display: flex;
+        justify-content: space-between;
+        padding: 0.25rem 0;
+        border: none;
+        white-space: normal !important;
+    }
+
+    .responsive-table tbody tr td::before {
+        content: attr(data-label);
+        font-weight: 600;
+        color: #6c757d;
+        flex-basis: 40%;
+        white-space: nowrap;
+    }
+
+    .responsive-table tbody tr td[data-label="Ações"] {
+        flex-direction: row !important;
+        justify-content: center !important;
+        gap: 0.5rem;
+        align-items: center;
+    }
+
+    .responsive-table tbody tr td[data-label="Ações"] .actions-cell {
+        flex-direction: row !important;
+        gap: 0.5rem;
+    }
+
+    .responsive-table tbody tr td[data-label="Ações"] .btn {
+        width: 32px;
+        height: 32px;
+        padding: 0;
+    }
+
+    .responsive-table tbody tr:nth-child(odd) {
+        background-color: transparent;
+    }
+
+    .responsive-table tbody tr:hover {
+        background-color: transparent;
+    }
+}

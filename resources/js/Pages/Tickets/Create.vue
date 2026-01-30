@@ -1,40 +1,9 @@
 <template>
   <div class="container py-5">
     <div class="mx-auto position-relative" style="max-width: 600px">
-      <button
-        @click="$inertia.get(route('projects.index'))"
-        type="button"
-        class="btn btn-outline-secondary d-flex align-items-center gap-2 mb-4"
-        style="
-          border-radius: 50px;
-          box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-          font-weight: 500;
-        "
-        aria-label="Voltar para lista de projetos"
-      >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="20"
-          height="20"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          class="feather feather-arrow-left"
-          viewBox="0 0 24 24"
-          aria-hidden="true"
-          focusable="false"
-        >
-          <line x1="19" y1="12" x2="5" y2="12" />
-          <polyline points="12 19 5 12 12 5" />
-        </svg>
-        Voltar
-      </button>
-
       <h2 class="mb-4 text-center">
         <small class="text-muted d-block mb-1">Novo Ticket para o Projeto</small>
-        <span class="fs-3 fw-semibold text-primary">{{ project.name }}</span>
+        <span class="fs-4 fw-semibold text-primary">{{ project.name }}</span>
       </h2>
 
       <form
@@ -56,9 +25,7 @@
             aria-describedby="titleHelp"
           />
           <div class="invalid-feedback">Título é obrigatório.</div>
-          <div id="titleHelp" class="form-text">
-            Um título claro ajuda a identificar o ticket.
-          </div>
+          <div id="titleHelp" class="form-text"></div>
         </div>
 
         <div class="mb-3">
