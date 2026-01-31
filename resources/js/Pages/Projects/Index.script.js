@@ -1,5 +1,4 @@
-import { Link } from "@inertiajs/vue3";
-import { Inertia } from "@inertiajs/inertia";
+import { Link, router } from "@inertiajs/vue3";
 import bootstrap from "bootstrap/dist/js/bootstrap.bundle";
 import CreateTicket from "@/Pages/Tickets/Create.vue";
 import DefaultLayout from "@/Layouts/DefaultLayout.vue";
@@ -79,7 +78,7 @@ export default {
 
     methods: {
         submitFilters() {
-            Inertia.get(
+            router.get(
                 "/projects",
                 {
                     ...this.localFilters,
@@ -100,7 +99,7 @@ export default {
         },
 
         changePage(page) {
-            Inertia.get(
+            router.get(
                 "/projects",
                 {
                     ...this.localFilters,
@@ -236,7 +235,7 @@ export default {
         },
         deleteProject() {
             if (!this.projectToDelete) return;
-            Inertia.delete(`/projects/${this.projectToDelete}`, {
+            router.delete(`/projects/${this.projectToDelete}`, {
                 onSuccess: () => {
                     this.closeDeleteModal();
                     this.submitFilters();
@@ -254,7 +253,7 @@ export default {
         },
         deleteTicket() {
             if (!this.ticketToDelete) return;
-            Inertia.delete(`/tickets/${this.ticketToDelete.id}`, {
+            router.delete(`/tickets/${this.ticketToDelete.id}`, {
                 onSuccess: () => {
                     this.closeDeleteTicketModal();
                     this.submitFilters();
@@ -282,7 +281,7 @@ export default {
         async saveProjectStatus() {
             if (!this.projectToChangeStatus) return;
             try {
-                await Inertia.patch(route("projects.updateStatus", this.projectToChangeStatus.id), {
+                await router.patch(route("projects.updateStatus", this.projectToChangeStatus.id), {
                     status: this.newProjectStatus,
                 });
 
@@ -302,7 +301,7 @@ export default {
         async saveTicketStatus() {
             if (!this.ticketToChangeStatus) return;
             try {
-                await Inertia.patch(route("tickets.updateStatus", this.ticketToChangeStatus.id), {
+                await router.patch(route("tickets.updateStatus", this.ticketToChangeStatus.id), {
                     status: this.newTicketStatus,
                 });
                 this.ticketToChangeStatus.status = this.newTicketStatus;
