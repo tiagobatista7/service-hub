@@ -75,7 +75,7 @@ Instale o Bootstrap 5 via npm
 npm install bootstrap@5
 ```
 
-Rode o npm
+Rode o npm (*requisito obrigatório)
 ```sh
 npm run dev
 ```
