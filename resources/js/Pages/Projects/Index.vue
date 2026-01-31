@@ -787,7 +787,6 @@
   </div>
 </template>
 
-
 <script>
 import componentOptions from "./Index.script.js";
 import DefaultLayout from "@/Layouts/DefaultLayout.vue";
