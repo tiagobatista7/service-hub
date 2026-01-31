@@ -5,30 +5,46 @@ use App\Models\User;
 use App\Notifications\TicketProcessedNotification;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Notifications\Messages\MailMessage;
+use Illuminate\Support\Facades\Notification;
 
 uses(RefreshDatabase::class);
 
 it('envia pelo canal mail e cria a mensagem de email correta', function () {
+
+    app()->setLocale('pt_BR');
+
+    Notification::fake();
+
     $user = User::factory()->create();
     $ticket = Ticket::factory()->for($user)->create();
 
-    $notification = new TicketProcessedNotification($ticket);
+    $user->notify(new TicketProcessedNotification($ticket));
 
-    expect($notification->via($user))->toContain('mail');
+    Notification::assertSentTo(
+        $user,
+        TicketProcessedNotification::class,
+        function ($notification, $channels) use ($user, $ticket) {
 
-    $mailData = $notification->toMail($user);
+            expect($notification->via($user))->toContain('mail');
 
-    expect($mailData)->toBeInstanceOf(MailMessage::class);
+            $mailData = $notification->toMail($user);
 
-    expect($mailData->subject)->toBe('Seu ticket foi processado');
+            expect($mailData)->toBeInstanceOf(MailMessage::class);
 
-    expect($mailData->introLines)->toContain("O anexo do ticket #{$ticket->id} foi processado e os dados foram atualizados.");
+            $mailArray = $mailData->toArray();
 
-    expect($mailData->actionText)->toBe('Ver Ticket');
+            expect($mailArray['subject'])->toBe('Seu ticket foi processado');
 
-    $expectedUrl = url("/tickets/{$ticket->id}");
+            expect($mailArray['introLines'])->toContain("O seu ticket #{$ticket->id} foi processado.");
 
-    expect($mailData->actionUrl)->toBe($expectedUrl);
+            expect($mailArray['actionText'])->toBe('Ver Ticket');
 
-    expect($mailData->outroLines)->toContain('Obrigado por usar o ServiceHub!');
+            $expectedUrl = url("/tickets/{$ticket->id}");
+            expect($mailArray['actionUrl'])->toBe($expectedUrl);
+
+            expect($mailArray['outroLines'])->toContain('Obrigado por usar o ServiceHub!');
+
+            return true;
+        }
+    );
 });

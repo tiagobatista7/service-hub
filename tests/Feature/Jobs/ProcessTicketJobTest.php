@@ -5,12 +5,14 @@ use App\Models\Ticket;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Facades\Storage;
 use App\Notifications\TicketProcessedNotification;
 
 uses(RefreshDatabase::class);
 
 beforeEach(function () {
     Notification::fake();
+    Storage::fake();
     $this->user = User::factory()->create();
 });
 
@@ -21,22 +23,33 @@ it('não faz nada se o ticket não tiver anexo', function () {
 
     ProcessTicketJob::dispatchSync($ticket);
 
+    $ticket->refresh();
+
     expect($ticket->ticketDetail)->toBeNull();
     Notification::assertNothingSent();
 });
 
 it('processa anexo JSON e atualiza o detalhe do ticket', function () {
     $jsonContent = json_encode(['key' => 'value']);
+    $filePath = 'attachments/test.json';
+
     $ticket = Ticket::factory()->for($this->user)->create([
-        'attachment_path' => 'attachments/test.json',
+        'attachment_path' => $filePath,
     ]);
 
-    \Storage::shouldReceive('get')
+    Storage::shouldReceive('exists')
         ->once()
-        ->with('attachments/test.json')
+        ->with($filePath)
+        ->andReturn(true);
+
+    Storage::shouldReceive('get')
+        ->once()
+        ->with($filePath)
         ->andReturn($jsonContent);
 
     ProcessTicketJob::dispatchSync($ticket);
+
+    $ticket->refresh();
 
     $ticketDetail = $ticket->ticketDetail()->first();
 
@@ -49,16 +62,25 @@ it('processa anexo JSON e atualiza o detalhe do ticket', function () {
 
 it('processa anexo de texto simples e atualiza o detalhe do ticket', function () {
     $textContent = "Some plain text content";
+    $filePath = 'attachments/test.txt';
+
     $ticket = Ticket::factory()->for($this->user)->create([
-        'attachment_path' => 'attachments/test.txt',
+        'attachment_path' => $filePath,
     ]);
 
-    \Storage::shouldReceive('get')
+    Storage::shouldReceive('exists')
         ->once()
-        ->with('attachments/test.txt')
+        ->with($filePath)
+        ->andReturn(true);
+
+    Storage::shouldReceive('get')
+        ->once()
+        ->with($filePath)
         ->andReturn($textContent);
 
     ProcessTicketJob::dispatchSync($ticket);
+
+    $ticket->refresh();
 
     $ticketDetail = $ticket->ticketDetail()->first();
 

@@ -17,7 +17,7 @@ class TicketProcessedNotification extends Notification
     public function __construct(Ticket $ticket)
     {
         $this->ticket = $ticket;
-    }
+    } 
 
     public function via($notifiable): array
     {

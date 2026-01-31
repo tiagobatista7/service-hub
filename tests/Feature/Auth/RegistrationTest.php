@@ -7,11 +7,14 @@ test('registration screen can be rendered', function () {
 });
 
 test('new users can register', function () {
+    $company = \App\Models\Company::factory()->create();
+
     $response = $this->post('/register', [
         'name' => 'Test User',
         'email' => 'test@example.com',
         'password' => 'password',
         'password_confirmation' => 'password',
+        'company_id' => $company->id,
     ]);
 
     $this->assertAuthenticated();

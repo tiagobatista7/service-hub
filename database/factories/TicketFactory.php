@@ -3,6 +3,8 @@
 namespace Database\Factories;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
+use App\Models\Project;
+use App\Models\User;
 
 /**
  * @extends Factory<\App\Models\Ticket>
@@ -34,6 +36,8 @@ class TicketFactory extends Factory
         }
 
         return [
+            'project_id' => Project::factory(),
+            'user_id' => User::factory(),
             'title' => $this->faker->randomElement([
                 'Erro ao acessar o sistema',
                 'Falha no login do usuário',
@@ -52,7 +56,6 @@ class TicketFactory extends Factory
                 'Sistema não reconhece permissão de usuário',
                 'Atualização automática não está funcionando',
             ]),
-
             'description' => $this->faker->randomElement([
                 'O usuário relata que ao tentar acessar o sistema, recebe uma mensagem de erro inesperada.',
                 'O sistema está demorando mais de 30 segundos para carregar a tela.',
@@ -70,7 +73,6 @@ class TicketFactory extends Factory
                 'Usuários com perfil específico não conseguem acessar determinadas funcionalidades.',
                 'A função de atualização automática do sistema não realiza nenhuma ação.',
             ]),
-
             'status' => $this->faker->randomElement($statuses),
             'sla_due_at' => $sla_due_at,
         ];

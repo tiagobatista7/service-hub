@@ -68,51 +68,51 @@ Route::middleware(['auth', 'verified'])->group(function () {
     });
 
     // =========================
-    // TICKET DETAILS
-    // =========================
-    Route::prefix('tickets/{ticket}')->group(function () {
-        Route::get('/details', [TicketDetailController::class, 'allDetails'])
-            ->name('tickets.details.index');
-
-        Route::get('/details/create', [TicketDetailController::class, 'create'])
-            ->name('tickets.details.create');
-
-        Route::post('/details', [TicketDetailController::class, 'store'])
-            ->name('tickets.details.store');
-    });
-
-    Route::get('/ticket-details/{ticketDetail}', [TicketDetailController::class, 'show'])
-        ->name('ticket-details.show');
-
-    Route::get('/ticket-details/{ticketDetail}/edit', [TicketDetailController::class, 'edit'])
-        ->name('ticket-details.edit'); // se precisar implementar
-
-    Route::put('/ticket-details/{ticketDetail}', [TicketDetailController::class, 'update'])
-        ->name('ticket-details.update');
-
-    Route::patch('/ticket-details/{ticketDetail}/status', [TicketDetailController::class, 'updateStatus'])
-        ->name('ticket-details.updateStatus');
-
-    Route::delete('/ticket-details/{ticketDetail}', [TicketDetailController::class, 'destroy'])
-        ->name('ticket-details.destroy');
-
-    // =========================
-    // STATUS
-    // =========================
-    Route::patch('/projects/{project}/status', [ProjectController::class, 'updateStatus'])
-        ->name('projects.updateStatus');
-
-    Route::patch('/tickets/{ticket}/status', [TicketController::class, 'updateStatus'])
-        ->name('tickets.updateStatus');
-
-    // =========================
     // PERFIL
     // =========================
-    Route::prefix('profile')->name('profile.')->group(function () {
-        Route::get('/', [ProfileController::class, 'edit'])->name('edit');
-        Route::patch('/', [ProfileController::class, 'update'])->name('update');
-        Route::delete('/', [ProfileController::class, 'destroy'])->name('destroy');
-    });
+
+    Route::get('/profile/edit', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::get('/profile', [ProfileController::class, 'show'])->name('profile.show');
+    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
+
+// =========================
+// TICKET DETAILS
+// =========================
+Route::prefix('tickets/{ticket}')->group(function () {
+    Route::get('/details', [TicketDetailController::class, 'allDetails'])
+        ->name('tickets.details.index');
+
+    Route::get('/details/create', [TicketDetailController::class, 'create'])
+        ->name('tickets.details.create');
+
+    Route::post('/details', [TicketDetailController::class, 'store'])
+        ->name('tickets.details.store');
+});
+
+Route::get('/ticket-details/{ticketDetail}', [TicketDetailController::class, 'show'])
+    ->name('ticket-details.show');
+
+Route::get('/ticket-details/{ticketDetail}/edit', [TicketDetailController::class, 'edit'])
+    ->name('ticket-details.edit'); // se precisar implementar
+
+Route::put('/ticket-details/{ticketDetail}', [TicketDetailController::class, 'update'])
+    ->name('ticket-details.update');
+
+Route::patch('/ticket-details/{ticketDetail}/status', [TicketDetailController::class, 'updateStatus'])
+    ->name('ticket-details.updateStatus');
+
+Route::delete('/ticket-details/{ticketDetail}', [TicketDetailController::class, 'destroy'])
+    ->name('ticket-details.destroy');
+
+// =========================
+// STATUS
+// =========================
+Route::patch('/projects/{project}/status', [ProjectController::class, 'updateStatus'])
+    ->name('projects.updateStatus');
+
+Route::patch('/tickets/{ticket}/status', [TicketController::class, 'updateStatus'])
+    ->name('tickets.updateStatus');
 
 require __DIR__ . '/auth.php';

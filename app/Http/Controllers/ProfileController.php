@@ -2,12 +2,21 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\UpdateProfileRequest;
-use App\Http\Requests\DeleteProfileRequest;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\Rule;
 
 class ProfileController extends Controller
 {
+    public function show()
+    {
+        $user = Auth::user();
+        return inertia('Profile/Show', [
+            'user' => $user,
+        ]);
+    }
+
     public function edit()
     {
         $user = Auth::user()->load('profile');
@@ -18,32 +27,41 @@ class ProfileController extends Controller
         ]);
     }
 
-    public function update(UpdateProfileRequest $request)
-    {
-        $user = Auth::user();
-
-        $user->update($request->only('name', 'email'));
-
-        $user->profile()->updateOrCreate(
-            ['user_id' => $user->id],
-            $request->only('phone', 'role')
-        );
-
-        return redirect()->route('profile.edit')->with('success', 'Profile updated.');
-    }
-
-    public function destroy(DeleteProfileRequest $request)
+    public function update(Request $request)
     {
         $user = $request->user();
 
+        $validatedData = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'email', 'max:255', Rule::unique('users')->ignore($user->id)],
+        ]);
+
+        if ($validatedData['email'] !== $user->email) {
+            $user->email_verified_at = null;
+        }
+
+        $user->fill($validatedData);
+        $user->save();
+
+        return redirect('/profile')->with('status', 'profile-updated');
+    }
+
+    public function destroy(Request $request)
+    {
+        $user = Auth::user();
+
+        $request->validate([
+            'password' => ['required'],
+        ]);
+
+        if (! Hash::check($request->password, $user->password)) {
+            return back()->withErrors(['password' => 'Senha incorreta']);
+        }
+
         Auth::logout();
 
-        $user->profile()->delete();
         $user->delete();
 
-        $request->session()->invalidate();
-        $request->session()->regenerateToken();
-
-        return redirect('/');
+        return redirect('/')->with('success', 'Conta deletada com sucesso!');
     }
 }

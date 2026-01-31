@@ -2,7 +2,7 @@
 
 use App\Models\User;
 
-test('profile page is displayed', function () {
+it('exibe a página de perfil', function () {
     $user = User::factory()->create();
 
     $response = $this
@@ -12,14 +12,14 @@ test('profile page is displayed', function () {
     $response->assertOk();
 });
 
-test('profile information can be updated', function () {
+it('pode atualizar as informações do perfil', function () {
     $user = User::factory()->create();
 
     $response = $this
         ->actingAs($user)
         ->patch('/profile', [
-            'name' => 'Test User',
-            'email' => 'test@example.com',
+            'name' => 'Usuário de Teste',
+            'email' => 'teste@exemplo.com',
         ]);
 
     $response
@@ -28,18 +28,18 @@ test('profile information can be updated', function () {
 
     $user->refresh();
 
-    $this->assertSame('Test User', $user->name);
-    $this->assertSame('test@example.com', $user->email);
+    $this->assertSame('Usuário de Teste', $user->name);
+    $this->assertSame('teste@exemplo.com', $user->email);
     $this->assertNull($user->email_verified_at);
 });
 
-test('email verification status is unchanged when the email address is unchanged', function () {
+it('status de verificação de email permanece inalterado quando o email não muda', function () {
     $user = User::factory()->create();
 
     $response = $this
         ->actingAs($user)
         ->patch('/profile', [
-            'name' => 'Test User',
+            'name' => 'Usuário de Teste',
             'email' => $user->email,
         ]);
 
@@ -50,7 +50,7 @@ test('email verification status is unchanged when the email address is unchanged
     $this->assertNotNull($user->refresh()->email_verified_at);
 });
 
-test('user can delete their account', function () {
+it('usuário pode deletar sua conta', function () {
     $user = User::factory()->create();
 
     $response = $this
@@ -67,14 +67,14 @@ test('user can delete their account', function () {
     $this->assertNull($user->fresh());
 });
 
-test('correct password must be provided to delete account', function () {
+it('senha correta deve ser fornecida para deletar a conta', function () {
     $user = User::factory()->create();
 
     $response = $this
         ->actingAs($user)
         ->from('/profile')
         ->delete('/profile', [
-            'password' => 'wrong-password',
+            'password' => 'senha-incorreta',
         ]);
 
     $response

@@ -31,8 +31,7 @@ class DashboardController extends Controller
             (float) (clone $baseQuery)
                 ->whereNotNull('resolved_at')
                 ->selectRaw('AVG(TIMESTAMPDIFF(HOUR, created_at, resolved_at)) as avg_time')
-                ->value('avg_time') ?? 0,
-            1
+                ->value('avg_time') ?? 0,1
         );
 
         $ticketsLast7Days = (clone $baseQuery)
@@ -80,5 +79,5 @@ class DashboardController extends Controller
             'latest_tickets'       => $latestTickets,
             'critical_slas'        => $criticalSlas,
         ]);
-    }
+    }    
 }
