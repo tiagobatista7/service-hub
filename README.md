@@ -64,6 +64,15 @@ Link para acessar o projeto:
 [http://localhost:8000/login](http://localhost:8000/login)
 
 
+Email para acesso administrador
+```sh
+admin@admin.com
+```
+
+Senha inicial do admin
+```sh
+123456789
+```
 
 Agora para iniciar os testes dos asserts com o Pest use o comando:
 ```sh
