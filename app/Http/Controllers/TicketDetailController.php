@@ -2,13 +2,21 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreTicketDetailRequest;
+use App\Http\Requests\UpdateTicketDetailStatusRequest;
 use App\Models\Ticket;
 use App\Models\TicketDetail;
+use App\Services\TicketDetailService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
 class TicketDetailController extends Controller
 {
+    public function __construct(protected TicketDetailService $ticketDetailService)
+    {
+        //
+    }
+
     public function create(Ticket $ticket)
     {
         return Inertia::render('TicketDetails/Create', [
@@ -16,79 +24,50 @@ class TicketDetailController extends Controller
         ]);
     }
 
-    public function show($ticketDetailId)
+    public function show(int $ticketDetailId)
     {
-        $ticketDetail = TicketDetail::findOrFail($ticketDetailId);
+        $ticketDetail = $this->ticketDetailService->findDetailOrFail($ticketDetailId);
+
         return Inertia::render('TicketDetails/Show', [
             'ticketDetail' => $ticketDetail,
         ]);
     }
 
-    public function store(Request $request, Ticket $ticket)
+    public function store(StoreTicketDetailRequest $request, Ticket $ticket)
     {
-        $data = $request->validate([
-            'technical_data' => 'nullable|json',
-            'status' => 'required|string|max:50',
-        ]);
-
-        $ticketDetail = $ticket->details()->create([
-            'technical_data' => $data['technical_data'] ?? null,
-            'status' => $data['status'],
-        ]);
+        $this->ticketDetailService->createDetail($ticket, $request->validated());
 
         return redirect()->route('tickets.show', $ticket->id)
             ->with('success', 'Detalhes do ticket criados com sucesso!');
     }
 
-    public function update(Request $request, TicketDetail $ticketDetail)
+    public function update(StoreTicketDetailRequest $request, TicketDetail $ticketDetail)
     {
-        $data = $request->validate([
-            'technical_data' => 'nullable|json',
-            'status' => 'required|string|max:50',
-        ]);
-
-        $ticketDetail->update([
-            'technical_data' => $data['technical_data'] ?? null,
-            'status' => $data['status'],
-        ]);
+        $this->ticketDetailService->updateDetail($ticketDetail, $request->validated());
 
         return redirect()->route('tickets.show', $ticketDetail->ticket_id)
             ->with('success', 'Detalhes do ticket atualizados com sucesso!');
     }
 
-    public function updateStatus(Request $request, TicketDetail $ticketDetail)
+    public function updateStatus(UpdateTicketDetailStatusRequest $request, TicketDetail $ticketDetail)
     {
-        $request->validate([
-            'status' => 'required|string|max:50',
-        ]);
-
-        $ticketDetail->status = $request->status;
-        $ticketDetail->save();
+        $this->ticketDetailService->updateStatus($ticketDetail, $request->status);
 
         return redirect()->back()
             ->with('success', 'Status do detalhe do ticket atualizado com sucesso!');
     }
 
-    public function destroy($ticketDetailId)
+    public function destroy(int $ticketDetailId)
     {
-        $ticketDetail = TicketDetail::findOrFail($ticketDetailId);
-        $ticketId = $ticketDetail->ticket_id;
-
-        $ticketDetail->delete();
+        $ticketId = $this->ticketDetailService->deleteDetail($ticketDetailId);
 
         return redirect()->route('tickets.show', $ticketId)
             ->with('success', 'Detalhes do ticket excluídos com sucesso!');
     }
 
-    public function allDetails(Request $request, $ticketId)
+    public function allDetails(Request $request, int $ticketId)
     {
-        $query = TicketDetail::where('ticket_id', $ticketId);
-
-        if ($request->filled('search')) {
-            $query->where('status', 'like', '%' . $request->search . '%');
-        }
-
-        $details = $query->orderBy('id', 'desc')->paginate(20);
+        $details = $this->ticketDetailService->getDetailsByTicket($ticketId, $request->input('search'));
 
         return response()->json($details);
     }

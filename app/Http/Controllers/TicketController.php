@@ -3,46 +3,39 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreTicketRequest;
+use App\Http\Requests\UpdateTicketStatusRequest;
 use App\Models\Project;
 use App\Models\Ticket;
+use App\Services\TicketService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 
 class TicketController extends Controller
 {
-    public function create(Project $project)
+    public function __construct(protected TicketService $ticketService)
     {
-        return Inertia::render('Tickets/Create', [
-            'project' => $project,
-        ]);
+        //
     }
 
-    public function show($ticketId)
+    public function create(Project $project)
     {
-        $ticket = Ticket::findOrFail($ticketId);
-        return Inertia::render('Tickets/Show', [
-            'ticket' => $ticket,
-        ]);
+        return Inertia::render('Tickets/Create', compact('project'));
+    }
+
+    public function show(int $ticketId)
+    {
+        $ticket = $this->ticketService->findTicketOrFail($ticketId);
+
+        return Inertia::render('Tickets/Show', compact('ticket'));
     }
 
     public function store(StoreTicketRequest $request, Project $project)
     {
         $data = $request->validated();
+        $attachment = $request->file('attachment');
 
-        $attachmentPath = null;
-        if ($request->hasFile('attachment')) {
-            $attachmentPath = $request->file('attachment')->store('tickets');
-        }
-
-        $ticket = $project->tickets()->create([
-            'title' => $data['title'],
-            'description' => $data['description'] ?? null,
-            'attachment_path' => $attachmentPath,
-            'user_id' => Auth::id(),
-        ]);
-
-        $ticket->project->recalculateStatus();
+        $this->ticketService->createTicket($data, $project, Auth::id(), $attachment);
 
         return redirect()->route('projects.index')
             ->with('success', 'Ticket criado com sucesso!');
@@ -52,53 +45,33 @@ class TicketController extends Controller
     {
         $data = $request->validated();
 
-        $ticket->update([
-            'title' => $data['title'],
-            'description' => $data['description'] ?? null,
-        ]);
-
-        $ticket->project->recalculateStatus();
+        $this->ticketService->updateTicket($ticket, $data);
 
         return redirect()->route('projects.index')
             ->with('success', 'Ticket atualizado com sucesso!');
     }
 
-    public function updateStatus(Request $request, Ticket $ticket)
+    public function updateStatus(UpdateTicketStatusRequest $request, Ticket $ticket)
     {
-        $request->validate([
-            'status' => 'required|string|max:50',
-        ]);
-
-        $ticket->status = $request->status;
-        $ticket->save();
-
-        $ticket->project->recalculateStatus();
+        $this->ticketService->updateStatus($ticket, $request->status);
 
         return redirect()->back()
             ->with('success', 'Status do ticket atualizado com sucesso!');
     }
 
-    public function destroy($ticketId)
+    public function destroy(int $ticketId)
     {
-        $ticket = Ticket::findOrFail($ticketId);
+        $ticket = $this->ticketService->findTicketOrFail($ticketId);
 
-        $ticket->delete();
-
-        $ticket->project->recalculateStatus();
+        $this->ticketService->deleteTicket($ticket);
 
         return redirect()->route('projects.index')
             ->with('success', 'Ticket excluído com sucesso!');
     }
 
-    public function allTickets(Request $request, $projectId)
+    public function allTickets(Request $request, int $projectId)
     {
-        $query = Ticket::where('project_id', $projectId);
-
-        if ($request->filled('search')) {
-            $query->where('title', 'like', '%' . $request->search . '%');
-        }
-
-        $tickets = $query->orderBy('id', 'desc')->paginate(20);
+        $tickets = $this->ticketService->getTicketsByProject($projectId, $request->search);
 
         return response()->json($tickets);
     }

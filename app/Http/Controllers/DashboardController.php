@@ -4,82 +4,81 @@ namespace App\Http\Controllers;
 
 use App\Models\Ticket;
 use App\Models\Project;
-use Carbon\Carbon;
-use Inertia\Inertia;
 use Illuminate\Support\Facades\Auth;
+use Inertia\Inertia;
 
 class DashboardController extends Controller
 {
     public function index()
     {
         $userId = Auth::id();
-        $today = Carbon::today();
+        $now = now();
 
-        $openTickets = Ticket::where('status', 'pendente')
-            ->where('user_id', $userId)
-            ->count();
+        $baseQuery = Ticket::where('user_id', $userId);
+        $openTickets = (clone $baseQuery)->where('status', 'pendente')->count();
 
-        $resolvedToday = Ticket::whereDate('updated_at', $today)
+        $resolvedToday = (clone $baseQuery)
+            ->whereDate('updated_at', $now)
             ->where('status', 'concluido')
-            ->where('user_id', $userId)
             ->count();
 
-        $slaRisk = Ticket::where('status', '!=', 'concluido')
-            ->where('sla_due_at', '<=', now()->addHours(2))
-            ->where('user_id', $userId)
+        $slaRisk = (clone $baseQuery)
+            ->where('status', '!=', 'concluido')
+            ->where('sla_due_at', '<=', $now->copy()->addHours(2))
             ->count();
 
-        $avgResolutionTimeRaw = Ticket::whereNotNull('resolved_at')
-            ->where('user_id', $userId)
-            ->selectRaw('AVG(TIMESTAMPDIFF(HOUR, created_at, resolved_at)) as avg_time')
-            ->value('avg_time');
+        $avgResolutionTime = round(
+            (float) (clone $baseQuery)
+                ->whereNotNull('resolved_at')
+                ->selectRaw('AVG(TIMESTAMPDIFF(HOUR, created_at, resolved_at)) as avg_time')
+                ->value('avg_time') ?? 0,
+            1
+        );
 
-        $avgResolutionTime = $avgResolutionTimeRaw ? round($avgResolutionTimeRaw, 1) : 0;
-
-        $ticketsLast7Days = Ticket::selectRaw('DATE(created_at) as date, COUNT(*) as total')
-            ->where('created_at', '>=', now()->subDays(7))
-            ->where('user_id', $userId)
+        $ticketsLast7Days = (clone $baseQuery)
+            ->selectRaw('DATE(created_at) as date, COUNT(*) as total')
+            ->where('created_at', '>=', $now->copy()->subDays(7))
             ->groupBy('date')
             ->orderBy('date')
             ->get();
 
-        $ticketsByCategory = Ticket::selectRaw('category, COUNT(*) as total')
-            ->where('user_id', $userId)
+        $ticketsByCategory = (clone $baseQuery)
+            ->selectRaw('category, COUNT(*) as total')
             ->groupBy('category')
             ->get();
 
-        $latestTickets = Ticket::where('user_id', $userId)
+        $latestTickets = (clone $baseQuery)
             ->latest()
-            ->take(5)
+            ->limit(5)
             ->get();
 
-        $criticalSlas = Ticket::where('status', '!=', 'concluido')
-            ->where('sla_due_at', '<=', now()->addHours(4))
-            ->where('user_id', $userId)
+        $criticalSlas = (clone $baseQuery)
+            ->where('status', '!=', 'concluido')
+            ->where('sla_due_at', '<=', $now->copy()->addHours(4))
             ->orderBy('sla_due_at')
-            ->take(5)
+            ->limit(5)
             ->get();
 
-        $totalTickets = Ticket::where('user_id', $userId)->count();
+        $totalTickets = (clone $baseQuery)->count();
 
-        $projectsByCategory = Project::selectRaw('category, COUNT(*) as total')
-            ->where('user_id', $userId)
+        $projectsByCategory = Project::where('user_id', $userId)
+            ->selectRaw('category, COUNT(*) as total')
             ->groupBy('category')
             ->get();
 
         return Inertia::render('Dashboard', [
             'kpis' => [
-                'open_tickets' => $openTickets,
-                'resolved_today' => $resolvedToday,
-                'sla_risk' => $slaRisk,
+                'open_tickets'        => $openTickets,
+                'resolved_today'      => $resolvedToday,
+                'sla_risk'            => $slaRisk,
                 'avg_resolution_time' => $avgResolutionTime,
-                'total' => $totalTickets,
+                'total'               => $totalTickets,
             ],
-            'tickets_last_7_days' => $ticketsLast7Days,
-            'tickets_by_category' => $ticketsByCategory,
+            'tickets_last_7_days'  => $ticketsLast7Days,
+            'tickets_by_category'  => $ticketsByCategory,
             'projects_by_category' => $projectsByCategory,
-            'latest_tickets' => $latestTickets,
-            'critical_slas' => $criticalSlas,
+            'latest_tickets'       => $latestTickets,
+            'critical_slas'        => $criticalSlas,
         ]);
     }
 }

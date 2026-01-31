@@ -5,7 +5,6 @@ use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\TicketController;
 use App\Http\Controllers\TicketDetailController;
-use App\Http\Controllers\IncidentController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -85,7 +84,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/ticket-details/{ticketDetail}', [TicketDetailController::class, 'show'])
         ->name('ticket-details.show');
 
-    Route::get('/ticket-details/{ticketDetail}/edit', [TicketDetailController::class, 'edit'] ?? null)
+    Route::get('/ticket-details/{ticketDetail}/edit', [TicketDetailController::class, 'edit'])
         ->name('ticket-details.edit'); // se precisar implementar
 
     Route::put('/ticket-details/{ticketDetail}', [TicketDetailController::class, 'update'])

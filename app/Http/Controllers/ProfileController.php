@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
+use App\Http\Requests\UpdateProfileRequest;
+use App\Http\Requests\DeleteProfileRequest;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Validation\Rule;
 
 class ProfileController extends Controller
 {
@@ -18,45 +18,27 @@ class ProfileController extends Controller
         ]);
     }
 
-    public function update(Request $request)
+    public function update(UpdateProfileRequest $request)
     {
         $user = Auth::user();
 
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => ['required', 'string', 'email', 'max:255', Rule::unique('users')->ignore($user->id)],
-            'phone' => 'nullable|string|max:20',
-            'role' => 'nullable|string|max:255',
-        ]);
-
-        $user->update([
-            'name' => $request->name,
-            'email' => $request->email,
-        ]);
+        $user->update($request->only('name', 'email'));
 
         $user->profile()->updateOrCreate(
             ['user_id' => $user->id],
-            [
-                'phone' => $request->phone,
-                'role' => $request->role,
-            ]
+            $request->only('phone', 'role')
         );
 
         return redirect()->route('profile.edit')->with('success', 'Profile updated.');
     }
 
-    public function destroy(Request $request)
+    public function destroy(DeleteProfileRequest $request)
     {
         $user = $request->user();
-
-        $request->validate([
-            'password' => ['required', 'current_password'],
-        ]);
 
         Auth::logout();
 
         $user->profile()->delete();
-
         $user->delete();
 
         $request->session()->invalidate();
