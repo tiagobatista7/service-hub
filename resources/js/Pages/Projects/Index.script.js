@@ -29,6 +29,10 @@ export default {
             deleteModalInstance: null,
             projectForNewTicket: null,
             createTicketModalInstance: null,
+           
+            localFlashSuccess: null,
+            localFlashError: null,
+
             localFilters: {
                 name: this.filters?.name || "",
                 company: this.filters?.company || "",
@@ -42,8 +46,6 @@ export default {
             allTicketsSearch: "",
             allTicketsModalInstance: null,
             openedModalsStack: [],
-            localFlashSuccess: this.flash?.success || null,
-            localFlashError: this.flash?.error || null,
             projectToChangeStatus: null,
             newProjectStatus: "",
             ticketToChangeStatus: null,
@@ -56,6 +58,7 @@ export default {
         totalPages() {
             return Array.from({ length: this.projects.last_page }, (_, i) => i + 1);
         },
+
         filteredAllTickets() {
             if (!this.allTicketsProject) return [];
             const search = this.allTicketsSearch.trim().toLowerCase();
@@ -66,14 +69,30 @@ export default {
         },
     },
 
-    mounted() {
-        this.projects.data.forEach((project) => {
-            this.ticketsPage[project.id] = project.tickets?.current_page || 1;
-        });
-        setTimeout(() => {
-            this.localFlashSuccess = null;
-            this.localFlashError = null;
-        }, 4000);
+    watch: {
+        flash: {
+            handler(newVal) {
+                if (newVal?.success) {
+                    this.localFlashSuccess = newVal.success;
+                    this.localFlashError = null;
+
+                    setTimeout(() => {
+                        this.localFlashSuccess = null;
+                    }, 3000);
+                }
+
+                if (newVal?.error) {
+                    this.localFlashError = newVal.error;
+                    this.localFlashSuccess = null;
+
+                    setTimeout(() => {
+                        this.localFlashError = null;
+                    }, 3000);
+                }
+            },
+            immediate: true,
+            deep: true,
+        },
     },
 
     methods: {
@@ -128,27 +147,24 @@ export default {
         statusBadgeClass(status) {
             if (!status) return "bg-secondary";
 
-            const statusName = typeof status === "object"
-                ? status.name.toLowerCase()
-                : status.toLowerCase();
+            const statusName =
+                typeof status === "object"
+                    ? status.name.toLowerCase()
+                    : status.toLowerCase();
 
             switch (statusName) {
                 case "concluído":
                 case "open":
                 case "aberto":
                     return "bg-success";
-
                 case "ativo":
                     return "bg-info text-black";
-
                 case "pendente":
                 case "em andamento":
                 case "in progress":
                     return "bg-warning text-dark";
-
                 case "cancelado":
                     return "bg-danger";
-
                 default:
                     return "bg-secondary";
             }
@@ -162,7 +178,8 @@ export default {
             if (this.openedModalsStack.includes(modalRef)) return;
 
             if (this.openedModalsStack.length > 0) {
-                const topModalRef = this.openedModalsStack[this.openedModalsStack.length - 1];
+                const topModalRef =
+                    this.openedModalsStack[this.openedModalsStack.length - 1];
                 const topModalEl = this.$refs[topModalRef];
                 if (topModalEl) topModalEl.style.display = "none";
             }
@@ -193,11 +210,14 @@ export default {
                 this[modalRef + "Instance"].hide();
             }
 
-            this.openedModalsStack = this.openedModalsStack.filter((m) => m !== modalRef);
+            this.openedModalsStack = this.openedModalsStack.filter(
+                (m) => m !== modalRef
+            );
             modalEl.style.display = "none";
 
             if (this.openedModalsStack.length > 0) {
-                const topModalRef = this.openedModalsStack[this.openedModalsStack.length - 1];
+                const topModalRef =
+                    this.openedModalsStack[this.openedModalsStack.length - 1];
                 const topModalEl = this.$refs[topModalRef];
                 if (topModalEl) topModalEl.style.display = "block";
             }
@@ -236,9 +256,12 @@ export default {
         deleteProject() {
             if (!this.projectToDelete) return;
             router.delete(`/projects/${this.projectToDelete}`, {
+                preserveScroll: true,
                 onSuccess: () => {
                     this.closeDeleteModal();
-                    this.submitFilters();
+                },
+                onError: () => {
+                    this.closeDeleteModal();
                 },
             });
         },
@@ -254,9 +277,9 @@ export default {
         deleteTicket() {
             if (!this.ticketToDelete) return;
             router.delete(`/tickets/${this.ticketToDelete.id}`, {
+                preserveScroll: true,
                 onSuccess: () => {
                     this.closeDeleteTicketModal();
-                    this.submitFilters();
                 },
             });
         },
@@ -274,21 +297,24 @@ export default {
 
         openChangeProjectStatusModal(project) {
             this.projectToChangeStatus = project;
-            this.newProjectStatus = project.status?.name || project.status || "";
+            this.newProjectStatus =
+                project.status?.name || project.status || "";
             this.openModal("changeProjectStatusModal");
         },
 
         async saveProjectStatus() {
             if (!this.projectToChangeStatus) return;
             try {
-                await router.patch(route("projects.updateStatus", this.projectToChangeStatus.id), {
-                    status: this.newProjectStatus,
-                });
+                await router.patch(
+                    route("projects.updateStatus", this.projectToChangeStatus.id),
+                    { status: this.newProjectStatus }
+                );
 
                 this.projectToChangeStatus.status = this.newProjectStatus;
                 this.closeModal("changeProjectStatusModal");
-            } catch (error) {
-                alert("Erro ao atualizar status do projeto.");
+            } catch {
+                this.localFlashError = "Erro ao atualizar status do projeto.";
+                setTimeout(() => (this.localFlashError = null), 3000);
             }
         },
 
@@ -301,13 +327,16 @@ export default {
         async saveTicketStatus() {
             if (!this.ticketToChangeStatus) return;
             try {
-                await router.patch(route("tickets.updateStatus", this.ticketToChangeStatus.id), {
-                    status: this.newTicketStatus,
-                });
+                await router.patch(
+                    route("tickets.updateStatus", this.ticketToChangeStatus.id),
+                    { status: this.newTicketStatus }
+                );
+
                 this.ticketToChangeStatus.status = this.newTicketStatus;
                 this.closeModal("changeTicketStatusModal");
-            } catch (error) {
-                alert("Erro ao atualizar status do ticket.");
+            } catch {
+                this.localFlashError = "Erro ao atualizar status do ticket.";
+                setTimeout(() => (this.localFlashError = null), 3000);
             }
         },
     },
