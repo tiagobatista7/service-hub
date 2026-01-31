@@ -80,7 +80,12 @@ Rode o npm
 npm run dev
 ```
 
-Insale o Pest no Laravel
+Link para acessar o projeto:
+[http://localhost:8000](http://localhost:8000)
+
+
+
+Para iniciar os testes insale o Pest no Laravel
 ```sh
 composer require pestphp/pest --dev
 ```
@@ -95,7 +100,6 @@ Agora para testar os asserts com o Pest use o comando:
 ./vendor/bin/pest
 ```
 
-Link para acessar o projeto:
-[http://localhost:8000](http://localhost:8000)
+
 
 
