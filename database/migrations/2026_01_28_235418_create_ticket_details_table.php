@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('ticket_id')->constrained()->cascadeOnDelete();
             $table->json('technical_data')->nullable();
-            $table->string('status')->default('pending');
+            $table->string('status')->default('pendente');
             $table->timestamps();
         });
     }

@@ -2,14 +2,21 @@ import { Link } from "@inertiajs/inertia-vue3";
 import { Inertia } from "@inertiajs/inertia";
 import bootstrap from "bootstrap/dist/js/bootstrap.bundle";
 import CreateTicket from "@/Pages/Tickets/Create.vue";
+import DefaultLayout from "@/Layouts/DefaultLayout.vue";
 
 export default {
-    components: { Link, CreateTicket },
+    components: { DefaultLayout, Link, CreateTicket },
+
+    layout: DefaultLayout,
+
     props: {
         projects: Object,
         filters: Object,
         flash: Object,
+        projectStatusOptions: Array,
+        ticketStatusOptions: Array,
     },
+
     data() {
         return {
             showAdvancedSearch: !!(
@@ -31,69 +38,48 @@ export default {
                 created_from: this.filters?.created_from || "",
                 created_to: this.filters?.created_to || "",
             },
-
             ticketToDelete: null,
             deleteTicketModalInstance: null,
-
             ticketsPage: {},
-
             allTicketsProject: null,
             allTicketsSearch: "",
             allTicketsModalInstance: null,
-
             openedModalsStack: [],
-
             localFlashSuccess: this.flash?.success || null,
             localFlashError: this.flash?.error || null,
+            projectToChangeStatus: null,
+            newProjectStatus: "",
+            ticketToChangeStatus: null,
+            newTicketStatus: "",
+            statusOptions: ["ativo", "concluído", "pendente", "cancelado"],
         };
     },
+
     computed: {
         totalPages() {
             return Array.from({ length: this.projects.last_page }, (_, i) => i + 1);
         },
-
         filteredAllTickets() {
             if (!this.allTicketsProject) return [];
-
             const search = this.allTicketsSearch.trim().toLowerCase();
             if (!search) return this.allTicketsProject.tickets_all || [];
-
             return (this.allTicketsProject.tickets_all || []).filter((ticket) =>
                 ticket.title.toLowerCase().includes(search)
             );
         },
     },
+
     mounted() {
         this.projects.data.forEach((project) => {
-            if (project.tickets && project.tickets.current_page) {
-                this.ticketsPage[project.id] = project.tickets.current_page;
-            } else {
-                this.ticketsPage[project.id] = 1;
-            }
+            this.ticketsPage[project.id] = project.tickets?.current_page || 1;
         });
-
         setTimeout(() => {
             this.localFlashSuccess = null;
             this.localFlashError = null;
         }, 4000);
     },
+
     methods: {
-        toggleExpand(id) {
-            if (this.expandedProjects.includes(id)) {
-                this.expandedProjects = this.expandedProjects.filter((i) => i !== id);
-            } else {
-                this.expandedProjects.push(id);
-                if (!this.ticketsPage[id]) {
-                    this.ticketsPage[id] = 1;
-                }
-            }
-        },
-
-        formatDate(date) {
-            if (!date) return "—";
-            return new Date(date).toLocaleDateString("pt-BR");
-        },
-
         submitFilters() {
             Inertia.get(
                 "/projects",
@@ -126,9 +112,53 @@ export default {
             );
         },
 
+        toggleExpand(id) {
+            if (this.expandedProjects.includes(id)) {
+                this.expandedProjects = this.expandedProjects.filter((i) => i !== id);
+            } else {
+                this.expandedProjects.push(id);
+                if (!this.ticketsPage[id]) {
+                    this.ticketsPage[id] = 1;
+                }
+            }
+        },
+
+        formatDate(date) {
+            if (!date) return "—";
+            return new Date(date).toLocaleDateString("pt-BR");
+        },
+
+        statusBadgeClass(status) {
+            if (!status) return "bg-secondary";
+
+            const statusName = typeof status === "object"
+                ? status.name.toLowerCase()
+                : status.toLowerCase();
+
+            switch (statusName) {
+                case "concluído":
+                case "open":
+                case "aberto":
+                    return "bg-success";
+
+                case "ativo":
+                    return "bg-info text-black";
+
+                case "pendente":
+                case "em andamento":
+                case "in progress":
+                    return "bg-warning text-dark";
+
+                case "cancelado":
+                    return "bg-danger";
+
+                default:
+                    return "bg-secondary";
+            }
+        },
+
         openModal(modalRef) {
             if (!modalRef) return;
-
             const modalEl = this.$refs[modalRef];
             if (!modalEl) return;
 
@@ -159,7 +189,6 @@ export default {
 
         closeModal(modalRef) {
             if (!modalRef) return;
-
             const modalEl = this.$refs[modalRef];
             if (!modalEl) return;
 
@@ -168,7 +197,6 @@ export default {
             }
 
             this.openedModalsStack = this.openedModalsStack.filter((m) => m !== modalRef);
-
             modalEl.style.display = "none";
 
             if (this.openedModalsStack.length > 0) {
@@ -210,7 +238,6 @@ export default {
         },
         deleteProject() {
             if (!this.projectToDelete) return;
-
             Inertia.delete(`/projects/${this.projectToDelete}`, {
                 onSuccess: () => {
                     this.closeDeleteModal();
@@ -229,7 +256,6 @@ export default {
         },
         deleteTicket() {
             if (!this.ticketToDelete) return;
-
             Inertia.delete(`/tickets/${this.ticketToDelete.id}`, {
                 onSuccess: () => {
                     this.closeDeleteTicketModal();
@@ -247,6 +273,45 @@ export default {
             this.allTicketsProject = null;
             this.allTicketsSearch = "";
             this.closeModal("allTicketsModal");
+        },
+
+        openChangeProjectStatusModal(project) {
+            this.projectToChangeStatus = project;
+            this.newProjectStatus = project.status?.name || project.status || "";
+            this.openModal("changeProjectStatusModal");
+        },
+
+        async saveProjectStatus() {
+            if (!this.projectToChangeStatus) return;
+            try {
+                await Inertia.patch(route("projects.updateStatus", this.projectToChangeStatus.id), {
+                    status: this.newProjectStatus,
+                });
+
+                this.projectToChangeStatus.status = this.newProjectStatus;
+                this.closeModal("changeProjectStatusModal");
+            } catch (error) {
+                alert("Erro ao atualizar status do projeto.");
+            }
+        },
+
+        openChangeTicketStatusModal(ticket) {
+            this.ticketToChangeStatus = ticket;
+            this.newTicketStatus = ticket.status || "";
+            this.openModal("changeTicketStatusModal");
+        },
+
+        async saveTicketStatus() {
+            if (!this.ticketToChangeStatus) return;
+            try {
+                await Inertia.patch(route("tickets.updateStatus", this.ticketToChangeStatus.id), {
+                    status: this.newTicketStatus,
+                });
+                this.ticketToChangeStatus.status = this.newTicketStatus;
+                this.closeModal("changeTicketStatusModal");
+            } catch (error) {
+                alert("Erro ao atualizar status do ticket.");
+            }
         },
     },
 };

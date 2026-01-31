@@ -14,6 +14,9 @@ class Ticket extends Model
         'user_id',
         'title',
         'description',
+        'category',
+        'status',
+        'sla_due_at',
     ];
 
     public function project()

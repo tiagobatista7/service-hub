@@ -42,8 +42,40 @@ class TicketController extends Controller
             'user_id' => Auth::id(),
         ]);
 
+        $ticket->project->recalculateStatus();
+
         return redirect()->route('projects.index')
             ->with('success', 'Ticket criado com sucesso!');
+    }
+
+    public function update(StoreTicketRequest $request, Ticket $ticket)
+    {
+        $data = $request->validated();
+
+        $ticket->update([
+            'title' => $data['title'],
+            'description' => $data['description'] ?? null,
+        ]);
+
+        $ticket->project->recalculateStatus();
+
+        return redirect()->route('projects.index')
+            ->with('success', 'Ticket atualizado com sucesso!');
+    }
+
+    public function updateStatus(Request $request, Ticket $ticket)
+    {
+        $request->validate([
+            'status' => 'required|string|max:50',
+        ]);
+
+        $ticket->status = $request->status;
+        $ticket->save();
+
+        $ticket->project->recalculateStatus();
+
+        return redirect()->back()
+            ->with('success', 'Status do ticket atualizado com sucesso!');
     }
 
     public function destroy($ticketId)
@@ -51,6 +83,8 @@ class TicketController extends Controller
         $ticket = Ticket::findOrFail($ticketId);
 
         $ticket->delete();
+
+        $ticket->project->recalculateStatus();
 
         return redirect()->route('projects.index')
             ->with('success', 'Ticket excluído com sucesso!');

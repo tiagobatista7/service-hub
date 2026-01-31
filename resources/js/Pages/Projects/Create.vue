@@ -41,6 +41,20 @@
         novalidate
       >
         <div class="mb-3">
+          <label for="category" class="form-label">Categoria do Projeto *</label>
+          <input
+            id="category"
+            type="text"
+            v-model="form.category"
+            class="form-control"
+            placeholder="Digite a categoria do projeto"
+            required
+            aria-describedby="categoryHelp"
+          />
+          <div class="invalid-feedback">Categoria do projeto é obrigatória.</div>
+        </div>
+
+        <div class="mb-3">
           <label for="name" class="form-label">Nome do Projeto *</label>
           <input
             id="name"
@@ -52,7 +66,6 @@
             aria-describedby="nameHelp"
           />
           <div class="invalid-feedback">Nome do projeto é obrigatório.</div>
-          <div id="nameHelp" class="form-text">Escolha um nome claro e objetivo.</div>
         </div>
 
         <button type="submit" class="btn btn-primary w-100" :disabled="form.processing">
@@ -70,6 +83,7 @@ import { useForm } from "@inertiajs/inertia-vue3";
 export default {
   setup() {
     const form = useForm({
+      category: "",
       name: "",
     });
 
@@ -77,7 +91,8 @@ export default {
 
     function submit() {
       validated.value = true;
-      if (!form.name) {
+
+      if (!form.category || !form.name) {
         return;
       }
 

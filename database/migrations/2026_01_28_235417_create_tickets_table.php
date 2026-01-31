@@ -17,6 +17,10 @@ return new class extends Migration
             $table->foreignId('user_id')->constrained()->cascadeOnDelete();
             $table->string('title');
             $table->text('description')->nullable();
+            $table->string('category')->default('geral');
+            $table->string('status')->default('pendente');
+            $table->dateTime('sla_due_at')->nullable();
+            $table->dateTime('resolved_at')->nullable();
             $table->timestamps();
         });
     }

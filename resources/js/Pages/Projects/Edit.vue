@@ -41,7 +41,19 @@
         novalidate
         enctype="multipart/form-data"
       >
-        <!-- Empresa removida -->
+        <div class="mb-3">
+          <label for="category" class="form-label">Categoria do Projeto *</label>
+          <input
+            id="category"
+            type="text"
+            v-model="form.category"
+            class="form-control"
+            placeholder="Digite a categoria do projeto"
+            required
+            aria-describedby="categoryHelp"
+          />
+          <div class="invalid-feedback">Categoria do projeto é obrigatória.</div>
+        </div>
 
         <div class="mb-3">
           <label for="name" class="form-label">Nome do Projeto *</label>
@@ -55,7 +67,6 @@
             aria-describedby="nameHelp"
           />
           <div class="invalid-feedback">Nome do projeto é obrigatório.</div>
-          <div id="nameHelp" class="form-text">Escolha um nome claro e objetivo.</div>
         </div>
 
         <div class="mb-3">
@@ -92,10 +103,11 @@ import { useForm } from "@inertiajs/inertia-vue3";
 export default {
   props: {
     project: Object,
-    companies: Array, // pode remover se não usar
+    companies: Array,
   },
   setup(props) {
     const form = useForm({
+      category: props.project.category || "",
       name: props.project.name || "",
       attachment: null,
     });
@@ -109,7 +121,8 @@ export default {
 
     function submit() {
       validated.value = true;
-      if (!form.name) {
+
+      if (!form.category || !form.name) {
         return;
       }
 

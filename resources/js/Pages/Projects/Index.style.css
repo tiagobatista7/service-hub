@@ -54,3 +54,49 @@
         background-color: transparent;
     }
 }
+
+/* Badge */
+.modern-badge {
+    display: inline-block;
+    padding: 0.25em 0.75em;
+    font-size: 0.875rem;
+    font-weight: 500;
+    border-radius: 0.5rem;
+    background-color: #f0f0f0;
+    color: #333333;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    transition: background-color 0.2s ease, color 0.2s ease;
+    text-transform: capitalize;
+    user-select: none;
+}
+
+.modern-badge.bg-success {
+    background-color: #d1e7dd;
+    color: #0f5132;
+}
+
+.modern-badge.bg-warning {
+    background-color: #fff3cd;
+    color: #664d03;
+}
+
+.modern-badge.bg-secondary {
+    background-color: #e2e3e5;
+    color: #41464b;
+}
+
+.modern-badge.bg-danger {
+    background-color: #f8d7da;
+    color: #842029;
+}
+
+.modern-badge.bg-info {
+    background-color: #cff4fc;
+    color: #055160;
+}
+
+/* Hover badges */
+.modern-badge:hover {
+    filter: brightness(0.9);
+    cursor: default;
+}

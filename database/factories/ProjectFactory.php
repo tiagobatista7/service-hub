@@ -15,6 +15,25 @@ class ProjectFactory extends Factory
 
     public function definition()
     {
+        $statuses = [
+            'ativo',
+            'concluído',
+            'pendente',
+            'cancelado',
+        ];
+
+        $categories = [
+            'Financeiro',
+            'TI',
+            'Marketing',
+            'Recursos Humanos',
+            'Operações',
+            'Vendas',
+            'Desenvolvimento',
+            'Suporte',
+            'Comercial',
+        ];
+
         return [
             'user_id' => User::inRandomOrder()->value('id'),
             'company_id' => Company::inRandomOrder()->value('id'),
@@ -41,6 +60,8 @@ class ProjectFactory extends Factory
                 'Gestão de Contratos',
                 'Portal Administrativo',
             ]),
+            'status' => $this->faker->randomElement($statuses),
+            'category' => $this->faker->randomElement($categories),
         ];
     }
 }

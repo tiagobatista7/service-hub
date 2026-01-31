@@ -9,6 +9,7 @@ use App\Models\Ticket;
 use Inertia\Inertia;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 
 class ProjectController extends Controller
 {
@@ -82,6 +83,7 @@ class ProjectController extends Controller
             ->with('success', 'Projeto criado com sucesso!');
     }
 
+
     public function edit(Project $project)
     {
         $this->authorizeUser($project);
@@ -97,14 +99,29 @@ class ProjectController extends Controller
     public function update(StoreProjectRequest $request, Project $project)
     {
         $this->authorizeUser($project);
+
         $data = $request->validated();
         $data['user_id'] = $project->user_id;
+        $data['company_id'] = $project->company_id;
 
         $project->update($data);
 
         return redirect()->route('projects.index')
             ->with('success', 'Projeto atualizado com sucesso!');
     }
+
+    public function updateStatus(Request $request, Project $project)
+    {
+        $request->validate([
+            'status' => 'required|string|max:50',
+        ]);
+
+        $project->status = $request->status;
+        $project->save();
+
+        return redirect()->back()->with('success', 'Status do projeto atualizado com sucesso!');
+    }
+
 
     public function destroy(Project $project)
     {

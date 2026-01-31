@@ -7,26 +7,24 @@ import TextInput from "@/Components/TextInput.vue";
 import { Head, Link, useForm } from "@inertiajs/vue3";
 import { ref, watch } from "vue";
 
-// Recebendo empresas via props
 const props = defineProps({
   companies: Array,
 });
 
-const step = ref(1); // passo atual: 1 = escolher empresa, 2 = preencher formulário
+const step = ref(1);
 
-const rawPhone = ref(""); // telefone sem máscara para enviar
+const rawPhone = ref("");
 
 const form = useForm({
   name: "",
   email: "",
   phone: "",
   role: "",
-  company_id: "", // empresa selecionada
+  company_id: "",
   password: "",
   password_confirmation: "",
 });
 
-// Máscara telefone
 function maskPhone(value) {
   if (!value) return "";
   value = value.replace(/\D/g, "");
@@ -46,7 +44,6 @@ function maskPhone(value) {
   )}-${value.substring(7, 11)}`;
 }
 
-// Sincroniza telefone com máscara
 watch(
   () => form.phone,
   (val) => {
@@ -58,7 +55,6 @@ watch(
   }
 );
 
-// Quando o usuário selecionar empresa, avança para etapa 2
 watch(
   () => form.company_id,
   (val) => {
@@ -66,7 +62,6 @@ watch(
   }
 );
 
-// Submit ajusta telefone sem máscara e envia
 const submit = () => {
   form.phone = rawPhone.value;
   form.post(route("register"), {
@@ -80,7 +75,6 @@ const submit = () => {
     <Head title="Registrar" />
 
     <form @submit.prevent="submit">
-      <!-- Etapa 1: Escolher empresa -->
       <div v-if="step === 1" class="mt-4">
         <InputLabel for="company_id" value="Empresa" />
 
@@ -99,7 +93,6 @@ const submit = () => {
         <InputError class="mt-2" :message="form.errors.company_id" />
       </div>
 
-      <!-- Etapa 2: Formulário completo -->
       <div v-if="step === 2">
         <div>
           <InputLabel for="name" value="Nome" />

@@ -14,7 +14,7 @@ class TicketsSeeder extends Seeder
         $users = User::all();
 
         Project::all()->each(function ($project) use ($users) {
-            Ticket::factory(2)->create([
+            Ticket::factory(5)->create([
                 'project_id' => $project->id,
                 'user_id' => $users->random()->id,
             ]);
