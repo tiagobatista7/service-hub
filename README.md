@@ -74,11 +74,15 @@ Senha inicial do admin
 123456789
 ```
 
-Agora para iniciar os testes dos asserts com o Pest use o comando:
+Agora para iniciar os testes entre no container:
+```sh
+docker-compose exec app bash
+```
+
+Em seguida execute este comando para testar os asserts:
 ```sh
 ./vendor/bin/pest
 ```
-
 
 
 
