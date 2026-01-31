@@ -79,7 +79,7 @@ Agora para iniciar os testes entre no container:
 docker-compose exec app bash
 ```
 
-Em seguida execute este comando para testar os asserts:
+Com o npm executando, digite este comando para testar os asserts:
 ```sh
 ./vendor/bin/pest
 ```
