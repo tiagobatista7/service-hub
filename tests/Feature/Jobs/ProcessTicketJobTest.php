@@ -1,0 +1,70 @@
+<?php
+
+use App\Jobs\ProcessTicketJob;
+use App\Models\Ticket;
+use App\Models\User;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Notification;
+use App\Notifications\TicketProcessedNotification;
+
+uses(RefreshDatabase::class);
+
+beforeEach(function () {
+    Notification::fake();
+    $this->user = User::factory()->create();
+});
+
+it('não faz nada se o ticket não tiver anexo', function () {
+    $ticket = Ticket::factory()->for($this->user)->create([
+        'attachment_path' => null,
+    ]);
+
+    ProcessTicketJob::dispatchSync($ticket);
+
+    expect($ticket->ticketDetail)->toBeNull();
+    Notification::assertNothingSent();
+});
+
+it('processa anexo JSON e atualiza o detalhe do ticket', function () {
+    $jsonContent = json_encode(['key' => 'value']);
+    $ticket = Ticket::factory()->for($this->user)->create([
+        'attachment_path' => 'attachments/test.json',
+    ]);
+
+    \Storage::shouldReceive('get')
+        ->once()
+        ->with('attachments/test.json')
+        ->andReturn($jsonContent);
+
+    ProcessTicketJob::dispatchSync($ticket);
+
+    $ticketDetail = $ticket->ticketDetail()->first();
+
+    expect($ticketDetail)->not->toBeNull();
+    expect(json_decode($ticketDetail->details, true))->toBe(['key' => 'value']);
+    expect($ticketDetail->details_text)->toBeNull();
+
+    Notification::assertSentTo($this->user, TicketProcessedNotification::class);
+});
+
+it('processa anexo de texto simples e atualiza o detalhe do ticket', function () {
+    $textContent = "Some plain text content";
+    $ticket = Ticket::factory()->for($this->user)->create([
+        'attachment_path' => 'attachments/test.txt',
+    ]);
+
+    \Storage::shouldReceive('get')
+        ->once()
+        ->with('attachments/test.txt')
+        ->andReturn($textContent);
+
+    ProcessTicketJob::dispatchSync($ticket);
+
+    $ticketDetail = $ticket->ticketDetail()->first();
+
+    expect($ticketDetail)->not->toBeNull();
+    expect($ticketDetail->details_text)->toBe($textContent);
+    expect($ticketDetail->details)->toBeNull();
+
+    Notification::assertSentTo($this->user, TicketProcessedNotification::class);
+});

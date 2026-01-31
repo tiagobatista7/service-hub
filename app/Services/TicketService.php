@@ -6,6 +6,7 @@ use App\Models\Project;
 use App\Models\Ticket;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use App\Jobs\ProcessTicketJob;
 
 class TicketService
 {
@@ -29,6 +30,10 @@ class TicketService
             'user_id' => $userId,
         ]);
 
+        if ($attachmentPath) {
+            ProcessTicketJob::dispatch($ticket);
+        }
+
         $ticket->project->recalculateStatus();
 
         return $ticket;
@@ -38,15 +43,25 @@ class TicketService
      * Atualiza os dados de um ticket.
      *
      * @param Ticket $ticket Ticket a ser atualizado
-     * @param array $data Dados atualizados do ticket (title, description)
+     * @param array $data Dados atualizados do ticket (title, description, attachment opcional)
+     * @param UploadedFile|null $attachment Arquivo de anexo opcional para atualizar
      * @return bool True se a atualização foi bem sucedida, caso contrario "false"
      */
-    public function updateTicket(Ticket $ticket, array $data): bool
+    public function updateTicket(Ticket $ticket, array $data, ?UploadedFile $attachment = null): bool
     {
+        if ($attachment) {
+            $data['attachment_path'] = $attachment->store('tickets');
+        }
+
         $updated = $ticket->update([
             'title' => $data['title'],
             'description' => $data['description'] ?? null,
+            'attachment_path' => $data['attachment_path'] ?? $ticket->attachment_path,
         ]);
+
+        if ($updated && !empty($ticket->attachment_path)) {
+            ProcessTicketJob::dispatch($ticket);
+        }
 
         $ticket->project->recalculateStatus();
 
