@@ -14,17 +14,7 @@ class CompanyFactory extends Factory
     public function definition()
     {
         return [
-            'name' => $this->faker->randomElement([
-                'Conecta Sistemas',
-                'Gestão Pro',
-                'Brasil Tech',
-                'Cloud ERP',
-                'Integra Solutions',
-                'Smart Sistemas',
-            ]) . ' ' . $this->faker->randomElement([
-                'LTDA',
-                'S/A',
-            ]),
+            'name' => $this->faker->unique()->company() . ' ' . $this->faker->randomElement(['LTDA', 'S/A']),
         ];
     }
 }
