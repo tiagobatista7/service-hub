@@ -1,4 +1,4 @@
-import { Link } from "@inertiajs/inertia-vue3";
+import { Link } from "@inertiajs/vue3";
 import { Inertia } from "@inertiajs/inertia";
 import bootstrap from "bootstrap/dist/js/bootstrap.bundle";
 import CreateTicket from "@/Pages/Tickets/Create.vue";
@@ -6,8 +6,6 @@ import DefaultLayout from "@/Layouts/DefaultLayout.vue";
 
 export default {
     components: { DefaultLayout, Link, CreateTicket },
-
-    layout: DefaultLayout,
 
     props: {
         projects: Object,

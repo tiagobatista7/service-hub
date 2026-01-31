@@ -1,6 +1,5 @@
 <template>
   <div class="app-layout">
-    <Sidebar />
     <main class="main-content p-4">
       <div class="container-fluid">
         <nav aria-label="breadcrumb" class="mb-3">
@@ -788,11 +787,13 @@
   </div>
 </template>
 
+
 <script>
 import componentOptions from "./Index.script.js";
-import Sidebar from "@/Components/Sidebar.vue";
+import DefaultLayout from "@/Layouts/DefaultLayout.vue";
+
 export default {
-  components: { Sidebar },
+  layout: DefaultLayout,
   ...componentOptions,
 };
 </script>

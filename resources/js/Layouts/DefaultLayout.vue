@@ -1,11 +1,7 @@
 <template>
   <div class="default-layout d-flex">
     <aside :class="['sidebar bg-light', { open: sidebarOpen }]">
-      <button
-        class="toggle-btn"
-        @click="sidebarOpen = !sidebarOpen"
-        aria-label="Toggle Sidebar"
-      >
+      <button class="toggle-btn" @click="toggleSidebar" aria-label="Toggle Sidebar">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M4 6h16M4 12h16M4 18h16" />
         </svg>
@@ -16,7 +12,7 @@
           <li>
             <Link
               :href="route('dashboard')"
-              @click="sidebarOpen = false"
+              @click="closeSidebarOnMobile"
               class="menu-link"
               :class="{ active: isActiveRoute('dashboard') }"
             >
@@ -24,10 +20,11 @@
               <span class="text">Dashboard</span>
             </Link>
           </li>
+
           <li>
             <Link
               :href="route('projects.index')"
-              @click="sidebarOpen = false"
+              @click="closeSidebarOnMobile"
               class="menu-link"
               :class="{ active: isActiveRoute('projects.index') }"
             >
@@ -46,16 +43,44 @@
 </template>
 
 <script setup>
-import { ref } from "vue";
+import { ref, onMounted } from "vue";
 import { Link, usePage } from "@inertiajs/vue3";
 import { route } from "ziggy-js";
 
-const sidebarOpen = ref(false);
-
 const page = usePage();
 
+// Estado da sidebar com persistência
+const sidebarOpen = ref(false);
+
+onMounted(() => {
+  const saved = localStorage.getItem("sidebarOpen");
+  sidebarOpen.value = saved === "true";
+});
+
+function toggleSidebar() {
+  sidebarOpen.value = !sidebarOpen.value;
+  localStorage.setItem("sidebarOpen", sidebarOpen.value);
+}
+
+function closeSidebarOnMobile() {
+  if (window.innerWidth <= 768) {
+    sidebarOpen.value = false;
+    localStorage.setItem("sidebarOpen", "false");
+  }
+}
+
+/**
+ * Verifica se a rota atual corresponde à rota do menu
+ */
 function isActiveRoute(routeName) {
-  return page.props.url === route(routeName);
+  try {
+    const currentPath = page.url;
+    const targetPath = new URL(route(routeName)).pathname;
+
+    return currentPath.startsWith(targetPath);
+  } catch (e) {
+    return false;
+  }
 }
 </script>
 
