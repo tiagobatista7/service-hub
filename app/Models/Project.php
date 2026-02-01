@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Project extends Model
 {
@@ -15,6 +16,11 @@ class Project extends Model
         'user_id',
         'category',
         'is_completed',
+        'status',  
+    ];
+   
+    protected $casts = [
+        'status' => 'string',
     ];
 
     public function company()
@@ -22,24 +28,26 @@ class Project extends Model
         return $this->belongsTo(Company::class);
     }
 
-    public function tickets()
+    public function user(): BelongsTo
     {
-        return $this->hasMany(Ticket::class)->orderBy('id', 'desc')->limit(3);
+        return $this->belongsTo(User::class);
     }
 
-    public function tickets_all()
+    public function tickets()
     {
         return $this->hasMany(Ticket::class)->orderBy('id', 'desc');
     }
 
-    public function tickets_limited()
+    public function ticketsLimited()
     {
         return $this->hasMany(Ticket::class)->orderBy('id', 'desc')->limit(3);
     }
 
-    public function getStatusAttribute($value)
+    public function lastTickets()
     {
-        return (object) ['name' => $value];
+        return $this->hasMany(Ticket::class)
+            ->orderBy('id', 'desc')
+            ->limit(3);
     }
 
     public function recalculateStatus()

@@ -24,14 +24,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])
         ->name('dashboard');
 
-    // =========================
     // PROJETOS
-    // =========================
     Route::resource('projects', ProjectController::class);
 
-    // =========================
     // TICKETS
-    // =========================
     Route::get('/tickets', [TicketController::class, 'index'])
         ->name('tickets.index');
 
@@ -53,33 +49,26 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::delete('/tickets/{ticket}', [TicketController::class, 'destroy'])
         ->name('tickets.destroy');
 
-    // =========================
     // TICKETS DENTRO DO PROJETO
-    // =========================
     Route::prefix('projects/{project}')->group(function () {
         Route::get('/tickets', [TicketController::class, 'indexByProject'])
             ->name('projects.tickets.index');
 
-        Route::get('/tickets/create', [TicketController::class, 'create'])
+        Route::get('/tickets/create', [TicketController::class, 'createInProject'])
             ->name('projects.tickets.create');
 
-        Route::post('/tickets', [TicketController::class, 'store'])
+        Route::post('/tickets', [TicketController::class, 'storeInProject'])
             ->name('projects.tickets.store');
     });
 
-    // =========================
     // PERFIL
-    // =========================
-
     Route::get('/profile/edit', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::get('/profile', [ProfileController::class, 'show'])->name('profile.show');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
-// =========================
 // TICKET DETAILS
-// =========================
 Route::prefix('tickets/{ticket}')->group(function () {
     Route::get('/details', [TicketDetailController::class, 'allDetails'])
         ->name('tickets.details.index');
@@ -95,7 +84,7 @@ Route::get('/ticket-details/{ticketDetail}', [TicketDetailController::class, 'sh
     ->name('ticket-details.show');
 
 Route::get('/ticket-details/{ticketDetail}/edit', [TicketDetailController::class, 'edit'])
-    ->name('ticket-details.edit'); // se precisar implementar
+    ->name('ticket-details.edit');
 
 Route::put('/ticket-details/{ticketDetail}', [TicketDetailController::class, 'update'])
     ->name('ticket-details.update');
@@ -106,9 +95,7 @@ Route::patch('/ticket-details/{ticketDetail}/status', [TicketDetailController::c
 Route::delete('/ticket-details/{ticketDetail}', [TicketDetailController::class, 'destroy'])
     ->name('ticket-details.destroy');
 
-// =========================
 // STATUS
-// =========================
 Route::patch('/projects/{project}/status', [ProjectController::class, 'updateStatus'])
     ->name('projects.updateStatus');
 

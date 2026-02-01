@@ -5,78 +5,53 @@ namespace App\Services;
 use App\Models\Company;
 use App\Models\Project;
 use App\Models\Ticket;
+use App\Models\User;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 
 class ProjectService
 {
-    /**
-     * Retorna projetos filtrados com paginação, trazendo os últimos 3 tickets relacionados em cada projeto.
-     *
-     * @param array $filters ['name' => string, 'company' => string, 'created_from' => date, 'created_to' => date]
-     * @param int $userId
-     * @return LengthAwarePaginator
-     */
-    public function getFilteredProjects(array $filters, int $userId): LengthAwarePaginator
+    public function getFilteredProjects(array $filters, User $user): LengthAwarePaginator
     {
-        $query = Project::with([
-            'tickets_all' => fn($q) => $q->orderBy('id', 'desc'),
-            'company',
-        ])->withCount('tickets')
-            ->where('user_id', $userId);
+        $query = Project::with('company')
+            ->withCount('tickets')
+            ->where('user_id', $user->id)
+            ->when($filters['name'] ?? null, fn($q, $v) => $q->where('name', 'like', "%{$v}%"))
+            ->when($filters['company'] ?? null, fn($q, $v) => $q->whereHas('company', fn($qq) => $qq->where('name', 'like', "%{$v}%")))
+            ->when($filters['created_from'] ?? null, fn($q, $v) => $q->whereDate('created_at', '>=', $v))
+            ->when($filters['created_to'] ?? null, fn($q, $v) => $q->whereDate('created_at', '<=', $v))
+            ->orderBy('id', 'desc');
 
-        if (!empty($filters['name'])) {
-            $query->where('name', 'like', '%' . $filters['name'] . '%');
-        }
-
-        if (!empty($filters['company'])) {
-            $query->whereHas('company', fn($q) => $q->where('name', 'like', '%' . $filters['company'] . '%'));
-        }
-
-        if (!empty($filters['created_from'])) {
-            $query->whereDate('created_at', '>=', $filters['created_from']);
-        }
-
-        if (!empty($filters['created_to'])) {
-            $query->whereDate('created_at', '<=', $filters['created_to']);
-        }
-
-        $projects = $query->orderBy('id', 'desc')->paginate(10)->withQueryString();
+        $projects = $query->paginate(10)->withQueryString();
 
         $projectIds = $projects->pluck('id')->toArray();
 
-        $tickets = Ticket::whereIn('project_id', $projectIds)
+        $ticketsGrouped = Ticket::whereIn('project_id', $projectIds)
             ->orderBy('id', 'desc')
             ->get()
             ->groupBy('project_id')
             ->map(fn($tickets) => $tickets->take(3));
 
-        $projects->getCollection()->transform(function ($project) use ($tickets) {
-            $project->setRelation('tickets', $tickets->get($project->id) ?? collect());
+        $ticketsAllGrouped = Ticket::whereIn('project_id', $projectIds)
+            ->orderBy('id', 'desc')
+            ->get()
+            ->groupBy('project_id');
+
+        $projects->getCollection()->transform(function ($project) use ($ticketsGrouped, $ticketsAllGrouped) {
+            $project->setRelation('tickets', $ticketsGrouped->get($project->id) ?? collect());
+            $project->setRelation('tickets_all', $ticketsAllGrouped->get($project->id) ?? collect());
             return $project;
         });
 
         return $projects;
     }
 
-    /**
-     * Retorna todas as empresas ordenadas por nome.
-     *
-     * @return Collection
-     */
     public function getCompanies(): Collection
     {
         return Company::orderBy('name')->get();
     }
 
-    /**
-     * Cria um projeto vinculado ao usuário e empresa do usuário.
-     *
-     * @param array $data
-     * @param \App\Models\User $user
-     * @return Project
-     */
-    public function createProject(array $data, $user): Project
+    public function createProject(array $data, User $user): Project
     {
         $data['user_id'] = $user->id;
         $data['company_id'] = $user->company_id;
@@ -84,13 +59,6 @@ class ProjectService
         return Project::create($data);
     }
 
-    /**
-     * Atualiza o projeto mantendo user_id e company_id originais.
-     *
-     * @param Project $project
-     * @param array $data
-     * @return bool
-     */
     public function updateProject(Project $project, array $data): bool
     {
         $data['user_id'] = $project->user_id;
@@ -99,25 +67,16 @@ class ProjectService
         return $project->update($data);
     }
 
-    /**
-     * Atualiza somente o status do projeto.
-     *
-     * @param Project $project
-     * @param string $status
-     * @return bool
-     */
     public function updateStatus(Project $project, string $status): bool
     {
         $project->status = $status;
-        return $project->save();
+        $saved = $project->save();
+
+        $project->refresh();
+
+        return $saved;
     }
 
-    /**
-     * Deleta projeto se não possuir tickets vinculados.
-     *
-     * @param Project $project
-     * @return array ['success' => bool, 'message' => string|null]
-     */
     public function deleteProject(Project $project): array
     {
         if ($project->tickets()->exists()) {

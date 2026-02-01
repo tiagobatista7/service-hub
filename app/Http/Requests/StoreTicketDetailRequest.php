@@ -14,8 +14,9 @@ class StoreTicketDetailRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'technical_data' => ['nullable', 'json'],
-            'status' => ['required', 'string', 'max:50'],
+            'technical_data' => 'nullable|array',
+            'details_text' => 'nullable|string',
+            'status' => 'nullable|string',
         ];
     }
 }

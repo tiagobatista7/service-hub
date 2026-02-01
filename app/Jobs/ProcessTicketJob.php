@@ -40,12 +40,12 @@ class ProcessTicketJob implements ShouldQueue
             $ticketDetail = $ticket->ticketDetail()->create([]);
         }
 
-        if (is_array($data)) { 
+        if (is_array($data)) {
             $ticketDetail->details = json_encode($data);
             $ticketDetail->details_text = null;
         } else {
-            $ticketDetail->details_text = $attachmentContent;
             $ticketDetail->details = null;
+            $ticketDetail->details_text = $attachmentContent;
         }
 
         $ticketDetail->save();

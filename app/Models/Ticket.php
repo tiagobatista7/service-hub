@@ -38,4 +38,9 @@ class Ticket extends Model
     {
         return $this->hasOne(TicketDetail::class);
     }
+
+    public function ticketDetails()
+    {
+        return $this->hasMany(TicketDetail::class);
+    }
 }

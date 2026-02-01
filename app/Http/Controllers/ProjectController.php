@@ -11,20 +11,40 @@ use Inertia\Inertia;
 
 class ProjectController extends Controller
 {
-    public function __construct(protected ProjectService $projectService)
-    {
-        //
-    }
+    public function __construct(protected ProjectService $projectService) {}
 
     public function index(Request $request)
     {
         $filters = $request->only(['name', 'company', 'created_from', 'created_to']);
-        $projects = $this->projectService->getFilteredProjects($filters, Auth::id());
 
         return Inertia::render('Projects/Index', [
-            'projects' => $projects,
+            'projects' => $this->projectService->getFilteredProjects($filters, Auth::user()),
             'filters' => $filters,
             'flash' => session()->only(['success', 'error', 'warning', 'info']),
+        ]);
+    }
+
+    public function show(Project $project)
+    {
+        $project->load(['tickets.user']);
+
+        $tickets = $project->tickets->map(fn($ticket) => [
+            'id' => $ticket->id,
+            'title' => $ticket->title,
+            'description' => $ticket->description,
+            'status' => $ticket->status,
+            'user' => $ticket->user ? [
+                'id' => $ticket->user->id,
+                'name' => $ticket->user->name,
+            ] : null,
+        ]);
+
+        return Inertia::render('Projects/Show', [
+            'project' => [
+                'id' => $project->id,
+                'name' => $project->name,
+                'tickets' => $tickets,
+            ],
         ]);
     }
 
@@ -39,8 +59,7 @@ class ProjectController extends Controller
     {
         $this->projectService->createProject($request->validated(), Auth::user());
 
-        return redirect()->route('projects.index')
-            ->with('success', 'Projeto criado com sucesso!');
+        return redirect()->route('projects.index')->with('success', 'Projeto criado com sucesso!');
     }
 
     public function edit(Project $project)
@@ -48,7 +67,14 @@ class ProjectController extends Controller
         $this->authorizeUser($project);
 
         return Inertia::render('Projects/Edit', [
-            'project' => $project,
+            'project' => [
+                'id' => $project->id,
+                'name' => $project->name,
+                'company_id' => $project->company_id,
+                'status' => $project->status,
+                'category' => $project->category,
+                'attachment' => $project->attachment,
+            ],
             'companies' => $this->projectService->getCompanies(),
         ]);
     }
@@ -59,19 +85,20 @@ class ProjectController extends Controller
 
         $this->projectService->updateProject($project, $request->validated());
 
-        return redirect()->route('projects.index')
-            ->with('success', 'Projeto atualizado com sucesso!');
+        return redirect()->route('projects.index')->with('success', 'Projeto atualizado com sucesso!');
     }
 
     public function updateStatus(Request $request, Project $project)
     {
-        $request->validate(['status' => 'required|string|max:50']);
         $this->authorizeUser($project);
 
-        $this->projectService->updateStatus($project, $request->status);
+        $validatedData = $request->validate([
+            'status' => 'required|string|max:50',
+        ]);
 
-        return redirect()->back()
-            ->with('success', 'Status do projeto atualizado com sucesso!');
+        $this->projectService->updateStatus($project, $validatedData['status']);
+
+        return redirect()->back()->with('success', 'Status do projeto atualizado com sucesso!');
     }
 
     public function destroy(Project $project)
@@ -80,15 +107,14 @@ class ProjectController extends Controller
 
         $result = $this->projectService->deleteProject($project);
 
-        return $result['success']
-            ? redirect()->route('projects.index')->with('success', 'Projeto deletado com sucesso!')
-            : redirect()->route('projects.index')->with('error', $result['message']);
+        return redirect()->route('projects.index')
+            ->with($result['success'] ? 'success' : 'error', $result['success']
+                ? 'Projeto deletado com sucesso!'
+                : $result['message']);
     }
 
     private function authorizeUser(Project $project): void
     {
-        if ($project->user_id !== Auth::id()) {
-            abort(403, 'Ação não autorizada.');
-        }
+        abort_if($project->user_id !== Auth::id(), 403);
     }
 }

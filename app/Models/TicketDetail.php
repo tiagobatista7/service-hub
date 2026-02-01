@@ -12,11 +12,14 @@ class TicketDetail extends Model
     protected $fillable = [
         'ticket_id',
         'technical_data',
+        'details_text',
         'status',
     ];
 
     protected $casts = [
         'technical_data' => 'array',
+        'details' => 'array',
+        'details_text' => 'string',
     ];
 
     public function ticket()

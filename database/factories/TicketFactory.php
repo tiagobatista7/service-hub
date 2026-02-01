@@ -6,9 +6,6 @@ use Illuminate\Database\Eloquent\Factories\Factory;
 use App\Models\Project;
 use App\Models\User;
 
-/**
- * @extends Factory<\App\Models\Ticket>
- */
 class TicketFactory extends Factory
 {
     protected $model = \App\Models\Ticket::class;
@@ -38,24 +35,7 @@ class TicketFactory extends Factory
         return [
             'project_id' => Project::factory(),
             'user_id' => User::factory(),
-            'title' => $this->faker->randomElement([
-                'Erro ao acessar o sistema',
-                'Falha no login do usuário',
-                'Sistema lento na tela de relatórios',
-                'Não consigo gerar boleto',
-                'Problema ao atualizar cadastro',
-                'Tela em branco ao abrir pedido',
-                'Erro ao salvar dados do cliente',
-                'Falha na autenticação via API',
-                'Notificação por email não enviada',
-                'Relatório financeiro com dados incorretos',
-                'Página de cadastro apresenta validação errada',
-                'Botão de enviar pedido inativo',
-                'Problema na exportação de arquivos CSV',
-                'Erro de timeout na consulta ao servidor',
-                'Sistema não reconhece permissão de usuário',
-                'Atualização automática não está funcionando',
-            ]),
+            'title' => 'Ticket de Teste',
             'description' => $this->faker->randomElement([
                 'O usuário relata que ao tentar acessar o sistema, recebe uma mensagem de erro inesperada.',
                 'O sistema está demorando mais de 30 segundos para carregar a tela.',

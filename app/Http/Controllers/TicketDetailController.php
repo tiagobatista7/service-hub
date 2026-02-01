@@ -12,10 +12,7 @@ use Inertia\Inertia;
 
 class TicketDetailController extends Controller
 {
-    public function __construct(protected TicketDetailService $ticketDetailService)
-    {
-        //
-    }
+    public function __construct(protected TicketDetailService $ticketDetailService) {}
 
     public function create(Ticket $ticket)
     {
@@ -24,10 +21,8 @@ class TicketDetailController extends Controller
         ]);
     }
 
-    public function show(int $ticketDetailId)
+    public function show(TicketDetail $ticketDetail)
     {
-        $ticketDetail = $this->ticketDetailService->findDetailOrFail($ticketDetailId);
-
         return Inertia::render('TicketDetails/Show', [
             'ticketDetail' => $ticketDetail,
         ]);
@@ -43,7 +38,12 @@ class TicketDetailController extends Controller
 
     public function update(StoreTicketDetailRequest $request, TicketDetail $ticketDetail)
     {
-        $this->ticketDetailService->updateDetail($ticketDetail, $request->validated());
+        $data = $request->validated();
+
+        $ticketDetail->technical_data = $data['technical_data'] ?? [];
+        $ticketDetail->details_text = $data['details_text'] ?? null;
+
+        $ticketDetail->save();
 
         return redirect()->route('tickets.show', $ticketDetail->ticket_id)
             ->with('success', 'Detalhes do ticket atualizados com sucesso!');
@@ -57,18 +57,22 @@ class TicketDetailController extends Controller
             ->with('success', 'Status do detalhe do ticket atualizado com sucesso!');
     }
 
-    public function destroy(int $ticketDetailId)
+    public function destroy(TicketDetail $ticketDetail)
     {
-        $ticketId = $this->ticketDetailService->deleteDetail($ticketDetailId);
+        $this->ticketDetailService->deleteDetail($ticketDetail->id);
 
-        return redirect()->route('tickets.show', $ticketId)
+        return redirect()
+            ->route('projects.index')
             ->with('success', 'Detalhes do ticket excluídos com sucesso!');
     }
 
-    public function allDetails(Request $request, int $ticketId)
+    public function allDetails(Request $request, Ticket $ticket)
     {
-        $details = $this->ticketDetailService->getDetailsByTicket($ticketId, $request->input('search'));
-
-        return response()->json($details);
+        return response()->json(
+            $this->ticketDetailService->getDetailsByTicket(
+                $ticket->id,
+                $request->input('search')
+            )
+        );
     }
 }
