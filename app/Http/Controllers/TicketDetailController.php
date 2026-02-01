@@ -32,7 +32,7 @@ class TicketDetailController extends Controller
     {
         $this->ticketDetailService->createDetail($ticket, $request->validated());
 
-        return redirect()->route('tickets.show', $ticket->id)
+        return redirect()->route('projects.index')
             ->with('success', 'Detalhes do ticket criados com sucesso!');
     }
 
@@ -45,7 +45,7 @@ class TicketDetailController extends Controller
 
         $ticketDetail->save();
 
-        return redirect()->route('tickets.show', $ticketDetail->ticket_id)
+        return redirect()->route('projects.index')
             ->with('success', 'Detalhes do ticket atualizados com sucesso!');
     }
 

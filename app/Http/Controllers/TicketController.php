@@ -124,7 +124,7 @@ class TicketController extends Controller
             $request->file('attachment')
         );
 
-        return redirect()->route('tickets.index', ['project' => $project->id])
+        return redirect()->route('projects.index')
             ->with('success', 'Ticket criado com sucesso!');
     }
 
@@ -137,7 +137,7 @@ class TicketController extends Controller
             $request->file('attachment')
         );
 
-        return redirect()->route('projects.tickets.index', $project)
+        return redirect()->route('projects.index')
             ->with('success', 'Ticket criado com sucesso!');
     }
 
@@ -153,7 +153,7 @@ class TicketController extends Controller
         $ticket->save();
 
         return redirect()
-            ->route('tickets.show', $ticket)
+            ->route('projects.index')
             ->with('success', 'Ticket atualizado com sucesso!');
     }
 

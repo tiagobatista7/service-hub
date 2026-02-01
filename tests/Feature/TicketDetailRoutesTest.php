@@ -32,7 +32,7 @@ it('cria um ticket detail pela rota tickets.details.store', function () {
 
     $response = $this->post(route('tickets.details.store', $this->ticket), $data);
 
-    $response->assertRedirect();
+    $response->assertRedirect(route('projects.index'));
     $this->assertDatabaseHas('ticket_details', [
         'ticket_id' => $this->ticket->id,
     ]);
@@ -54,7 +54,7 @@ it('atualiza um ticket detail pela rota ticket-details.update', function () {
 
     $response = $this->put(route('ticket-details.update', $this->ticketDetail), $data);
 
-    $response->assertRedirect();
+    $response->assertRedirect(route('projects.index'));
 
     $fresh = $this->ticketDetail->fresh();
 
@@ -62,7 +62,6 @@ it('atualiza um ticket detail pela rota ticket-details.update', function () {
     expect($fresh->technical_data)->toBeArray();
     expect($fresh->technical_data['key'])->toBe('updated');
 });
-
 
 it('atualiza o status do ticket detail pela rota ticket-details.updateStatus', function () {
     $data = ['status' => 'concluído'];

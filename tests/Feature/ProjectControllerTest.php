@@ -63,16 +63,11 @@ it('cria um novo ticket dentro do projeto', function () {
     $data = [
         'title' => 'Ticket Novo',
         'description' => 'Descrição do ticket',
-        'project_id' => $this->project->id,
         'status' => 'pendente',
     ];
 
     $response = $this->post(route('projects.tickets.store', $this->project), $data);
 
-    $response->assertRedirect(route('projects.tickets.index', $this->project));
-
-    $this->assertDatabaseHas('tickets', [
-        'title' => 'Ticket Novo',
-        'project_id' => $this->project->id,
-    ]);
+    $response->assertRedirect(route('projects.index'));
+    $this->assertDatabaseHas('tickets', ['title' => 'Ticket Novo', 'project_id' => $this->project->id]);
 });

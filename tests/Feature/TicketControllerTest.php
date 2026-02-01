@@ -53,7 +53,7 @@ it('cria um novo ticket', function () {
 
     $response = $this->post(route('tickets.store'), $data);
 
-    $response->assertRedirect(route('tickets.index', ['project' => $this->project->id]));
+    $response->assertRedirect(route('projects.index'));
     $this->assertDatabaseHas('tickets', ['title' => 'Novo Ticket', 'project_id' => $this->project->id]);
 });
 
@@ -92,7 +92,7 @@ it('atualiza um ticket', function () {
 
     $response = $this->put(route('tickets.update', $ticket), $data);
 
-    $response->assertRedirect(route('tickets.show', $ticket));
+    $response->assertRedirect(route('projects.index'));
     $this->assertDatabaseHas('tickets', ['id' => $ticket->id, 'title' => 'Ticket Atualizado']);
 });
 
