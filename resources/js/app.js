@@ -6,7 +6,9 @@ import 'bootstrap/dist/js/bootstrap.bundle.min.js'
 import { createInertiaApp } from '@inertiajs/vue3'
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers'
 import { createApp, h } from 'vue'
-import { ZiggyVue } from '../../vendor/tightenco/ziggy'
+
+import { ZiggyVue } from 'ziggy-js'
+import { Ziggy } from './ziggy'
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel'
 
@@ -23,7 +25,9 @@ createInertiaApp({
     const app = createApp({ render: () => h(App, props) })
 
     app.use(plugin)
-    app.use(ZiggyVue)
+
+    app.use(ZiggyVue, Ziggy)
+
     app.mount(el)
 
     return app
