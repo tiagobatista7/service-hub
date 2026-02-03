@@ -11,9 +11,11 @@ class ProfileController extends Controller
 {
     public function show()
     {
-        $user = Auth::user();
-        return inertia('Profile/Show', [
+        $user = Auth::user()->load('profile');
+
+        return inertia('Profile/Edit', [
             'user' => $user,
+            'profile' => $user->profile,
         ]);
     }
 
