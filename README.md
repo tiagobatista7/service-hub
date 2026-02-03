@@ -1,5 +1,5 @@
 
-# Setup Docker Laravel 11 com PHP 8.3
+# Setup Docker Laravel 11 com PHP 8.4
 
 ### Passo a passo
 Clone Repositório
