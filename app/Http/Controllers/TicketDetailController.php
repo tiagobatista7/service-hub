@@ -16,14 +16,14 @@ class TicketDetailController extends Controller
 
     public function create(Ticket $ticket)
     {
-        return Inertia::render('TicketDetails/Create', [
+        return Inertia::render('Tickets/Create', [
             'ticket' => $ticket,
         ]);
     }
 
     public function show(TicketDetail $ticketDetail)
     {
-        return Inertia::render('TicketDetails/Show', [
+        return Inertia::render('Tickets/Show', [
             'ticketDetail' => $ticketDetail,
         ]);
     }

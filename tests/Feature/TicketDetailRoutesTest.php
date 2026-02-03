@@ -1,80 +1,78 @@
 <?php
 
+namespace App\Http\Controllers;
+
+use App\Http\Requests\StoreTicketDetailRequest;
+use App\Http\Requests\UpdateTicketDetailStatusRequest;
 use App\Models\Ticket;
 use App\Models\TicketDetail;
-use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
+use App\Services\TicketDetailService;
+use Illuminate\Http\Request;
+use Inertia\Inertia;
 
-uses(RefreshDatabase::class);
+class TicketDetailController extends Controller
+{
+    public function __construct(protected TicketDetailService $ticketDetailService) {}
 
-beforeEach(function () {
-    $this->user = User::factory()->create();
-    $this->ticket = Ticket::factory()->for($this->user)->create();
-    $this->ticketDetail = TicketDetail::factory()->for($this->ticket)->create();
-    $this->actingAs($this->user);
-});
+    public function create(Ticket $ticket)
+    {
+        return Inertia::render('Tickets/Create', [
+            'ticket' => $ticket,
+        ]);
+    }
 
-it('retorna status 200 na rota tickets.details.index', function () {
-    $response = $this->get(route('tickets.details.index', $this->ticket));
-    $response->assertStatus(200);
-});
+    public function show(TicketDetail $ticketDetail)
+    {
+        return Inertia::render('Tickets/Show', [
+            'ticketDetail' => $ticketDetail,
+        ]);
+    }
 
-it('retorna status 200 na rota tickets.details.create', function () {
-    $response = $this->get(route('tickets.details.create', $this->ticket));
-    $response->assertStatus(200);
-});
+    public function store(StoreTicketDetailRequest $request, Ticket $ticket)
+    {
+        $this->ticketDetailService->createDetail($ticket, $request->validated());
 
-it('cria um ticket detail pela rota tickets.details.store', function () {
-    $data = [
-        'technical_data' => ['key' => 'value'],
-        'details_text' => null,
-    ];
+        return redirect()->route('projects.index')
+            ->with('success', 'Detalhes do ticket criados com sucesso!');
+    }
 
-    $response = $this->post(route('tickets.details.store', $this->ticket), $data);
+    public function update(StoreTicketDetailRequest $request, TicketDetail $ticketDetail)
+    {
+        $data = $request->validated();
 
-    $response->assertRedirect(route('projects.index'));
-    $this->assertDatabaseHas('ticket_details', [
-        'ticket_id' => $this->ticket->id,
-    ]);
-});
+        $ticketDetail->technical_data = $data['technical_data'] ?? [];
+        $ticketDetail->details_text = $data['details_text'] ?? null;
 
-it('retorna status 200 na rota ticket-details.show', function () {
-    $response = $this->get(route('ticket-details.show', $this->ticketDetail));
-    $response->assertStatus(200);
-});
+        $ticketDetail->save();
 
-it('atualiza um ticket detail pela rota ticket-details.update', function () {
-    $data = [
-        'technical_data' => ['key' => 'updated'],
-        'details_text' => 'Texto atualizado',
-    ];
+        return redirect()->route('projects.index')
+            ->with('success', 'Detalhes do ticket atualizados com sucesso!');
+    }
 
-    $this->ticketDetail->technical_data = ['key' => 'old'];
-    $this->ticketDetail->save();
+    public function updateStatus(UpdateTicketDetailStatusRequest $request, TicketDetail $ticketDetail)
+    {
+        $this->ticketDetailService->updateStatus($ticketDetail, $request->status);
 
-    $response = $this->put(route('ticket-details.update', $this->ticketDetail), $data);
+        return redirect()->back()
+            ->with('success', 'Status do detalhe do ticket atualizado com sucesso!');
+    }
 
-    $response->assertRedirect(route('projects.index'));
+    public function destroy(TicketDetail $ticketDetail)
+    {
+        $this->ticketDetailService->deleteDetail($ticketDetail->id);
 
-    $fresh = $this->ticketDetail->fresh();
+        return redirect()
+            ->route('projects.index')
+            ->with('success', 'Detalhes do ticket excluídos com sucesso!');
+    }
 
-    expect($fresh->details_text)->toBe('Texto atualizado');
-    expect($fresh->technical_data)->toBeArray();
-    expect($fresh->technical_data['key'])->toBe('updated');
-});
-
-it('atualiza o status do ticket detail pela rota ticket-details.updateStatus', function () {
-    $data = ['status' => 'concluído'];
-
-    $response = $this->patch(route('ticket-details.updateStatus', $this->ticketDetail), $data);
-
-    $response->assertRedirect();
-    expect($this->ticketDetail->fresh()->status)->toBe('concluído');
-});
-
-it('deleta um ticket detail pela rota ticket-details.destroy', function () {
-    $response = $this->delete(route('ticket-details.destroy', $this->ticketDetail));
-
-    $response->assertRedirect(route('projects.index'));
-    $this->assertDatabaseMissing('ticket_details', ['id' => $this->ticketDetail->id]);
-});
+    public function allDetails(Request $request, Ticket $ticket)
+    {
+        return response()->json(
+            $this->ticketDetailService->getDetailsByTicket(
+                $ticket->id,
+                $request->input('search')
+            )
+        );
+    }
+}
