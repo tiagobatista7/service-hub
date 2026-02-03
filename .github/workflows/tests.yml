@@ -47,14 +47,19 @@ jobs:
           sed -i "s/DB_CONNECTION=mysql/DB_CONNECTION=sqlite/g" .env
           sed -i "s|DB_DATABASE=.*|DB_DATABASE=database/database.sqlite|g" .env
           sed -i "s/DB_HOST=.*/DB_HOST=127.0.0.1/g" .env
-          php artisan config:clear
-          php artisan cache:clear
 
       - name: Generate app key
         run: php artisan key:generate
 
       - name: Run migrations
         run: php artisan migrate --force
+
+      - name: Clear Laravel caches
+        run: |
+          php artisan config:clear
+          php artisan cache:clear
+          php artisan route:clear
+          php artisan view:clear
 
       - name: Execute tests
         run: php artisan test
